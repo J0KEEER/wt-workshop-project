@@ -1,0 +1,23 @@
+import {  DataTypes  } from 'sequelize';
+import {  sequelize  } from '../db.js';
+
+const Faculty = sequelize.define('Faculty', {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: true, field: 'user_id' },
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING, allowNull: true },
+    department: { type: DataTypes.STRING, allowNull: false },
+    designation: {
+        type: DataTypes.ENUM('Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer'),
+        defaultValue: 'Assistant Professor',
+    },
+    specialization: { type: DataTypes.STRING, allowNull: true },
+    joiningDate: { type: DataTypes.DATEONLY, allowNull: true, field: 'joining_date' },
+    status: {
+        type: DataTypes.ENUM('active', 'on_leave', 'retired', 'resigned'),
+        defaultValue: 'active',
+    },
+});
+
+export default Faculty;

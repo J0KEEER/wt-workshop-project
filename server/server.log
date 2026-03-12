@@ -1,0 +1,36 @@
+✅ Database connected
+✅ Models synchronized
+
+🚀 College ERP API running on:
+   Local:   http://localhost:5001
+   Network: http://10.89.122.28:5001
+   Health:  http://localhost:5001/api/health
+
+Login attempt: shivangi@niet.co.in
+User not found, checking fallback...
+Faculty found: shivangi@niet.co.in, userId: null
+Creating new User for faculty...
+Password valid: true
+POST /api/auth/login 200 156ms
+Login attempt: 2401331540163
+Password valid: true
+POST /api/auth/login 200 92ms
+GET /api/dashboard/stats 304 31ms
+🔌 Client connected: Bx2dh-808tSLDAecAAAC
+GET /api/dashboard/stats 304 6ms
+🔌 Client disconnected: Bx2dh-808tSLDAecAAAC
+GET /api/courses 304 12ms
+GET /api/faculty 200 12ms
+GET /api/faculty 304 5ms
+GET /api/courses 304 9ms
+Login attempt: admin
+Password valid: true
+POST /api/auth/login 200 100ms
+GET /api/dashboard/stats 304 7ms
+GET /api/courses 304 3ms
+GET /api/students 304 5ms
+GET /api/dashboard/stats 304 15ms
+🔌 Client connected: lckwgpaxV1f5UHG-AAAG
+GET /api/courses 304 5ms
+GET /api/students 304 6ms
+GET /api/dashboard/stats 304 17ms

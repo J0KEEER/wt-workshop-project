@@ -21,6 +21,7 @@ export async function initDB(force = false) {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connected');
+    // We avoid alter:true for SQLite as it causes data loss loops in some environments
     await sequelize.sync({ force });
     console.log('✅ Models synchronized');
   } catch (err) {

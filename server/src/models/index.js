@@ -11,6 +11,7 @@ import Payment from './Payment.js';
 import Book from './Book.js';
 import BookLoan from './BookLoan.js';
 import Department from './Department.js';
+import CourseFaculty from './CourseFaculty.js';
 
 // === Associations ===
 
@@ -22,9 +23,13 @@ Student.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasOne(Faculty, { foreignKey: 'userId', as: 'facultyProfile' });
 Faculty.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-// Faculty <-> Course (one-to-many)
-Faculty.hasMany(Course, { foreignKey: 'facultyId', as: 'courses' });
-Course.belongsTo(Faculty, { foreignKey: 'facultyId', as: 'faculty' });
+// Faculty <-> Course (many-to-many via CourseFaculty)
+Faculty.belongsToMany(Course, { through: CourseFaculty, foreignKey: 'facultyId', as: 'courses' });
+Course.belongsToMany(Faculty, { through: CourseFaculty, foreignKey: 'courseId', as: 'faculties' });
+Faculty.hasMany(CourseFaculty, { foreignKey: 'facultyId', as: 'assignmentRecords' });
+Course.hasMany(CourseFaculty, { foreignKey: 'courseId', as: 'assignmentRecords' });
+CourseFaculty.belongsTo(Faculty, { foreignKey: 'facultyId', as: 'faculty' });
+CourseFaculty.belongsTo(Course, { foreignKey: 'courseId', as: 'course' });
 
 // Student <-> Course (many-to-many via Enrollment)
 Student.belongsToMany(Course, { through: Enrollment, foreignKey: 'studentId', otherKey: 'courseId', as: 'courses' });
@@ -66,8 +71,18 @@ BookLoan.belongsTo(Book, { foreignKey: 'bookId', as: 'book' });
 User.hasMany(BookLoan, { foreignKey: 'userId', as: 'bookLoans' });
 BookLoan.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
+// Department <-> Student, Faculty, Course
+Department.hasMany(Student, { foreignKey: 'departmentId', as: 'students' });
+Student.belongsTo(Department, { foreignKey: 'departmentId', as: 'departmentRef' });
+
+Department.hasMany(Faculty, { foreignKey: 'departmentId', as: 'faculty' });
+Faculty.belongsTo(Department, { foreignKey: 'departmentId', as: 'departmentRef' });
+
+Department.hasMany(Course, { foreignKey: 'departmentId', as: 'courses' });
+Course.belongsTo(Department, { foreignKey: 'departmentId', as: 'departmentRef' });
+
 export {
     User, Student, Faculty, Course, Enrollment,
     Attendance, Exam, ExamResult, Fee, Payment,
-    Book, BookLoan, Department,
+    Book, BookLoan, Department, CourseFaculty,
 };

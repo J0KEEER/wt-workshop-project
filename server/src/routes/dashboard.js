@@ -31,9 +31,13 @@ router.get('/stats', authenticate, async (req, res) => {
 
         // Department-wise student count
         const departmentStats = await Student.findAll({
-            attributes: ['department', [sequelize.fn('COUNT', sequelize.col('id')), 'count']],
+            attributes: [
+                [sequelize.col('departmentRef.name'), 'department'],
+                [sequelize.fn('COUNT', sequelize.col('Student.id')), 'count']
+            ],
             where: { status: 'active' },
-            group: ['department'],
+            include: [{ model: Department, as: 'departmentRef', attributes: [] }],
+            group: ['department_id'],
             raw: true,
         });
 

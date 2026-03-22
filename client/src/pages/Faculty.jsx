@@ -9,34 +9,81 @@ export default function Faculty() {
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ name: '', email: '', phone: '', department: '', designation: 'Assistant Professor', specialization: '' });
+    const [form, setForm] = useState({ name: '', email: '', phone: '', department: '', departmentId: '', designation: 'Assistant Professor', specialization: '' });
+    const [departments, setDepartments] = useState([]);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
     const fetchFaculty = () => {
         setLoading(true);
-        api.get('/faculty', { params: search ? { search } : {} })
-            .then(res => setFacultyList(res.data))
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        Promise.allSettled([
+            api.get('/faculty', { params: search ? { search } : {} }),
+            api.get('/departments')
+        ])
+        .then(([facultyRes, departmentsRes]) => {
+            if (facultyRes.status === 'fulfilled') setFacultyList(facultyRes.value.data);
+            if (departmentsRes.status === 'fulfilled') setDepartments(departmentsRes.value.data);
+        })
+        .catch(console.error)
+        .finally(() => setLoading(false));
     };
 
     const fetchFacultyOnly = () => {
+        setLoading(true); // Set loading to true when fetching only faculty
         api.get('/faculty', { params: search ? { search } : {} })
             .then(res => setFacultyList(res.data))
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setLoading(false)); // Set loading to false after fetch
     }
 
-    useEffect(() => { fetchFaculty(); }, [search]);
+    useEffect(() => {
+        // Initial fetch of all data (faculty and departments)
+        fetchFaculty();
+    }, []); // Run once on mount
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchFacultyOnly();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedFacultyList = [...facultyList].sort((a, b) => {
+        const valA = a[sortConfig.key] || '';
+        const valB = b[sortConfig.key] || '';
+        if (typeof valA === 'string') {
+            return sortConfig.direction === 'asc' 
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+        return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    });
 
     const openCreate = () => {
         setEditing(null);
-        setForm({ name: '', email: '', phone: '', department: '', designation: 'Assistant Professor', specialization: '' });
+        setForm({ name: '', email: '', phone: '', department: '', departmentId: '', designation: 'Assistant Professor', specialization: '' });
         setModalOpen(true);
     };
 
     const openEdit = (f) => {
         setEditing(f);
-        setForm({ name: f.name, email: f.email, phone: f.phone || '', department: f.department, designation: f.designation, specialization: f.specialization || '' });
+        setForm({ 
+            name: f.name, 
+            email: f.email, 
+            phone: f.phone || '', 
+            department: f.department, 
+            departmentId: f.departmentId || '', 
+            designation: f.designation, 
+            specialization: f.specialization || '' 
+        });
         setModalOpen(true);
     };
 
@@ -67,8 +114,6 @@ export default function Faculty() {
         }
     };
 
-    if (loading) return <div className="loading"><div className="spinner"></div></div>;
-
     return (
         <div className="fade-in">
             <div className="toolbar">
@@ -82,22 +127,30 @@ export default function Faculty() {
                     <button className="btn btn-primary" onClick={openCreate}><Plus size={16} /> Add Faculty</button>
                 </div>
             </div>
-
-            <div className="table-wrapper">
+            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+                {loading && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(2px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+                    }}>
+                        <div className="spinner"></div>
+                    </div>
+                )}
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>Designation</th>
+                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('designation')} style={{ cursor: 'pointer' }}>Designation {sortConfig.key === 'designation' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                             <th>Courses</th>
-                            <th>Status</th>
+                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {facultyList.map(f => (
+                        {sortedFacultyList.map(f => (
                             <tr key={f.id}>
                                 <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{f.name}</td>
                                 <td>{f.email}</td>
@@ -113,7 +166,7 @@ export default function Faculty() {
                                 </td>
                             </tr>
                         ))}
-                        {facultyList.length === 0 && (
+                        {sortedFacultyList.length === 0 && !loading && (
                             <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No faculty found</td></tr>
                         )}
                     </tbody>
@@ -137,11 +190,19 @@ export default function Faculty() {
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Department</label>
-                                <select className="form-control" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} required>
+                                <select 
+                                    className="form-control" 
+                                    value={form.departmentId} 
+                                    onChange={e => {
+                                        const dept = departments.find(d => d.id === parseInt(e.target.value));
+                                        setForm({ ...form, departmentId: dept ? dept.id : '', department: dept ? dept.name : '' });
+                                    }} 
+                                    required
+                                >
                                     <option value="">Select...</option>
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Physics">Physics</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="form-group">

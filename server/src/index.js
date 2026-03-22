@@ -88,8 +88,19 @@ app.use('/api/departments', departmentRoutes);
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+// Serve React Frontend (Static Build)
+const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDistPath));
 
-// 404 handler
+// Catch-all for React Router (Serves index.html for non-API routes)
+app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+        return next(); // Let the 404 handler handle unmatched API routes
+    }
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+});
+
+// 404 handler for API routes
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });

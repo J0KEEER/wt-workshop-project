@@ -9,47 +9,70 @@ export default function Students() {
     const [search, setSearch] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [editing, setEditing] = useState(null);
-    const [form, setForm] = useState({ rollNo: '', name: '', email: '', semester: 1, department: '', phone: '', dob: '', guardianName: '' });
+    const [form, setForm] = useState({ rollNo: '', name: '', email: '', semester: 1, department: '', departmentId: '', phone: '', dob: '', guardianName: '' });
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [courses, setCourses] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [selectedCourses, setSelectedCourses] = useState([]);
+    const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
     const fetchData = () => {
         setLoading(true);
         // Vercel async-parallel rule: fetch independent queries simultaneously
         Promise.allSettled([
             api.get('/students', { params: search ? { search } : {} }),
-            api.get('/courses')
+            api.get('/courses'),
+            api.get('/departments')
         ])
-        .then(([studentsRes, coursesRes]) => {
+        .then(([studentsRes, coursesRes, departmentsRes]) => {
             if (studentsRes.status === 'fulfilled') setStudents(studentsRes.value.data);
             if (coursesRes.status === 'fulfilled') setCourses(coursesRes.value.data);
+            if (departmentsRes.status === 'fulfilled') setDepartments(departmentsRes.value.data);
         })
         .catch(console.error)
         .finally(() => setLoading(false));
     };
 
     const fetchStudentsOnly = () => {
+        setLoading(true);
         api.get('/students', { params: search ? { search } : {} })
             .then(res => setStudents(res.data))
-            .catch(console.error);
+            .catch(console.error)
+            .finally(() => setLoading(false));
     }
 
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchStudentsOnly();
+        }, 300);
+        return () => clearTimeout(timer);
     }, [search]);
 
     const openCreate = () => {
         setEditing(null);
-        setForm({ rollNo: '', name: '', email: '', semester: 1, department: '', phone: '', dob: '', guardianName: '' });
+        setForm({ rollNo: '', name: '', email: '', semester: 1, department: '', departmentId: '', phone: '', dob: '', guardianName: '' });
         setSelectedCourses([]);
         setModalOpen(true);
     };
 
     const openEdit = (s) => {
         setEditing(s);
-        setForm({ rollNo: s.rollNo, name: s.name, email: s.email, semester: s.semester, department: s.department, phone: s.phone || '', dob: s.dob || '', guardianName: s.guardianName || '' });
+        setForm({ 
+            rollNo: s.rollNo, 
+            name: s.name, 
+            email: s.email, 
+            semester: s.semester, 
+            department: s.department, 
+            departmentId: s.departmentId || '', 
+            phone: s.phone || '', 
+            dob: s.dob || '', 
+            guardianName: s.guardianName || '' 
+        });
         setSelectedCourses(s.courses?.map(c => c.id) || []);
         setModalOpen(true);
     };
@@ -86,6 +109,33 @@ export default function Students() {
         );
     };
 
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedCourses(courses.map(c => c.id));
+        } else {
+            setSelectedCourses([]);
+        }
+    };
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedStudents = [...students].sort((a, b) => {
+        const valA = a[sortConfig.key] || '';
+        const valB = b[sortConfig.key] || '';
+        if (typeof valA === 'string') {
+            return sortConfig.direction === 'asc' 
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+        return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    });
+
     const confirmDelete = async () => {
         if (!deleteTarget) return;
         try {
@@ -98,7 +148,7 @@ export default function Students() {
         }
     };
 
-    if (loading) return <div className="loading"><div className="spinner"></div></div>;
+    // Removed top-level loading check to prevent unmounting toolbar
 
     return (
         <div className="fade-in">
@@ -114,22 +164,31 @@ export default function Students() {
                 </div>
             </div>
 
-            <div className="table-wrapper">
+            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+                {loading && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(var(--bg-rgb), 0.7)', backdropFilter: 'blur(2px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+                    }}>
+                        <div className="spinner"></div>
+                    </div>
+                )}
                 <table>
                     <thead>
                         <tr>
-                            <th>Roll No</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>semester</th>
-                            <th>Status</th>
+                            <th onClick={() => requestSort('rollNo')} style={{ cursor: 'pointer' }}>Roll No {sortConfig.key === 'rollNo' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>semester {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                             <th>Subjects</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map(s => (
+                        {sortedStudents.map(s => (
                             <tr key={s.id}>
                                 <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.rollNo}</td>
                                 <td>{s.name}</td>
@@ -146,7 +205,7 @@ export default function Students() {
                                 </td>
                             </tr>
                         ))}
-                        {students.length === 0 && (
+                        {sortedStudents.length === 0 && !loading && (
                             <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No students found</td></tr>
                         )}
                     </tbody>
@@ -181,13 +240,19 @@ export default function Students() {
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Department</label>
-                                <select className="form-control" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} required>
+                                <select 
+                                    className="form-control" 
+                                    value={form.departmentId} 
+                                    onChange={e => {
+                                        const dept = departments.find(d => d.id === parseInt(e.target.value));
+                                        setForm({ ...form, departmentId: dept ? dept.id : '', department: dept ? dept.name : '' });
+                                    }} 
+                                    required
+                                >
                                     <option value="">Select...</option>
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Physics">Physics</option>
-                                    <option value="Chemistry">Chemistry</option>
-                                    <option value="English">English</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="form-group">
@@ -209,8 +274,12 @@ export default function Students() {
                         </div>
                         {/* Course Selection */}
                         <div className="form-group" style={{ marginTop: '8px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
-                                <BookOpen size={14} /> Enroll in Subjects
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', justifyContent: 'space-between' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><BookOpen size={14} /> Enroll in Subjects</span>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', fontWeight: 400, cursor: 'pointer' }}>
+                                    <input type="checkbox" onChange={handleSelectAll} checked={selectedCourses.length === (courses?.length || 0) && (courses?.length || 0) > 0} />
+                                    Select All
+                                </label>
                             </label>
                             <div style={{
                                 display: 'grid',

@@ -10,15 +10,35 @@ export default function Departments() {
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({ name: '', code: '', description: '', headOfDepartment: '' });
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [sortBy, setSortBy] = useState('name');
 
     const fetchDepartments = () => {
+        setLoading(true);
         api.get('/departments', { params: search ? { search } : {} })
             .then(res => setDepartments(res.data))
             .catch(console.error)
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => { fetchDepartments(); }, [search]);
+    // Initial load
+    useEffect(() => {
+        fetchDepartments();
+    }, []);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchDepartments();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [search]);
+
+    const sortedDepartments = [...departments].sort((a, b) => {
+        if (sortBy === 'name') return a.name.localeCompare(b.name);
+        if (sortBy === 'code') return a.code.localeCompare(b.code);
+        if (sortBy === 'students') return (b.studentCount || 0) - (a.studentCount || 0);
+        return 0;
+    });
 
     const openCreate = () => {
         setEditing(null);
@@ -59,7 +79,7 @@ export default function Departments() {
         }
     };
 
-    if (loading) return <div className="loading"><div className="spinner"></div></div>;
+    // Removed top-level loading check
 
     return (
         <div className="fade-in">
@@ -69,14 +89,34 @@ export default function Departments() {
                         <Search size={16} />
                         <input className="form-control" placeholder="Search departments…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search departments" />
                     </div>
+                    <select 
+                        className="form-control" 
+                        style={{ width: 'auto', marginLeft: '12px', fontSize: '0.85rem' }} 
+                        value={sortBy} 
+                        onChange={e => setSortBy(e.target.value)}
+                    >
+                        <option value="name">Sort by Name</option>
+                        <option value="code">Sort by Code</option>
+                        <option value="students">Sort by Students (High to Low)</option>
+                    </select>
                 </div>
                 <div className="toolbar-right">
                     <button className="btn btn-primary" onClick={openCreate} id="add-department-btn"><Plus size={16} /> Add Department</button>
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px', marginTop: '8px' }}>
-                {departments.map(d => (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '16px', marginTop: '8px', position: 'relative', minHeight: '300px' }}>
+                {loading && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(2px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10,
+                        borderRadius: 'var(--radius-lg)'
+                    }}>
+                        <div className="spinner"></div>
+                    </div>
+                )}
+                {sortedDepartments.map(d => (
                     <div key={d.id} className="card" style={{ padding: '20px', position: 'relative' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
                             <div style={{
@@ -98,6 +138,20 @@ export default function Departments() {
                                         {d.description}
                                     </p>
                                 )}
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Students</p>
+                                        <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-light)' }}>{d.studentCount || 0}</p>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Faculty</p>
+                                        <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-light)' }}>{d.facultyCount || 0}</p>
+                                    </div>
+                                    <div style={{ textAlign: 'center' }}>
+                                        <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Courses</p>
+                                        <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--accent-light)' }}>{d.courseCount || 0}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div style={{ display: 'flex', gap: '6px', marginTop: '12px', justifyContent: 'flex-end' }}>

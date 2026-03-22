@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
-import {  Course, Faculty, Student, Enrollment  } from '../models/index.js';
+import {  Course, Faculty, Student, Enrollment, Department  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -23,8 +23,11 @@ router.get('/', authenticate, async (req, res) => {
 
         const courses = await Course.findAll({
             where,
-            include: [{ model: Faculty, as: 'faculty', attributes: ['id', 'name', 'department'] }],
-            order: [['code', 'ASC']],
+            include: [
+                { model: Faculty, as: 'faculties', attributes: ['id', 'name', 'department'] },
+                { model: Department, as: 'departmentRef', attributes: ['name', 'code'] }
+            ],
+            order: [['title', 'ASC']],
         });
         res.json(courses);
     } catch (err) {
@@ -37,7 +40,7 @@ router.get('/:id', authenticate, async (req, res) => {
     try {
         const course = await Course.findByPk(req.params.id, {
             include: [
-                { model: Faculty, as: 'faculty' },
+                { model: Faculty, as: 'faculties' },
                 { model: Student, as: 'students', through: { attributes: ['status', 'term'] } },
             ],
         });
@@ -64,7 +67,11 @@ router.get('/:id/roster', authenticate, authorize('admin', 'faculty', 'staff'), 
 // POST /api/courses
 router.post('/', authenticate, authorize('admin'), async (req, res) => {
     try {
-        const course = await Course.create(req.body);
+        const { facultyIds, ...courseData } = req.body;
+        const course = await Course.create(courseData);
+        if (facultyIds && Array.isArray(facultyIds)) {
+            await course.setFaculties(facultyIds);
+        }
         res.status(201).json(course);
     } catch (err) {
         res.status(400).json({ error: err.message });
@@ -74,9 +81,13 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
 // PUT /api/courses/:id
 router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
     try {
+        const { facultyIds, ...courseData } = req.body;
         const course = await Course.findByPk(req.params.id);
         if (!course) return res.status(404).json({ error: 'Course not found' });
-        await course.update(req.body);
+        await course.update(courseData);
+        if (facultyIds && Array.isArray(facultyIds)) {
+            await course.setFaculties(facultyIds);
+        }
         res.json(course);
     } catch (err) {
         res.status(400).json({ error: err.message });

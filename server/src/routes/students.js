@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
-import {  Student, Course, Enrollment, User  } from '../models/index.js';
+import {  Student, Course, Enrollment, User, Department  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -24,8 +24,11 @@ router.get('/', authenticate, authorize('admin', 'faculty', 'staff'), async (req
 
         const students = await Student.findAll({
             where,
-            include: [{ model: Course, as: 'courses', through: { attributes: ['status', 'term'] } }],
-            order: [['rollNo', 'ASC']],
+            include: [
+                { model: Course, as: 'courses', through: { attributes: ['status', 'term'] } },
+                { model: Department, as: 'departmentRef', attributes: ['name', 'code'] }
+            ],
+            order: [['name', 'ASC']],
         });
         res.json(students);
     } catch (err) {

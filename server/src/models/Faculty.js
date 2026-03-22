@@ -7,6 +7,7 @@ const Faculty = sequelize.define('Faculty', {
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, allowNull: false },
     phone: { type: DataTypes.STRING, allowNull: true },
+    departmentId: { type: DataTypes.INTEGER, allowNull: true, field: 'department_id' },
     department: { type: DataTypes.STRING, allowNull: false },
     designation: {
         type: DataTypes.ENUM('Professor', 'Associate Professor', 'Assistant Professor', 'Lecturer'),

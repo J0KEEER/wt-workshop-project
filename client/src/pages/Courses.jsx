@@ -12,43 +12,85 @@ export default function Courses() {
     const [editing, setEditing] = useState(null);
     const [rosterOpen, setRosterOpen] = useState(null);
     const [roster, setRoster] = useState([]);
-    const [form, setForm] = useState({ code: '', title: '', credits: 3, semester: 1, department: '', capacity: 60, facultyId: '' });
+    const [form, setForm] = useState({ code: '', title: '', credits: 3, semester: 1, department: '', departmentId: '', capacity: 60, facultyIds: [] });
+    const [departments, setDepartments] = useState([]);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' });
 
     const fetchData = () => {
         setLoading(true);
         Promise.allSettled([
             api.get('/courses', { params: search ? { search } : {} }),
-            api.get('/faculty')
+            api.get('/faculty'),
+            api.get('/departments')
         ])
-        .then(([coursesRes, facultyRes]) => {
+        .then(([coursesRes, facultyRes, departmentsRes]) => {
             if (coursesRes.status === 'fulfilled') setCourses(coursesRes.value.data);
             if (facultyRes.status === 'fulfilled') setFaculty(facultyRes.value.data);
+            if (departmentsRes.status === 'fulfilled') setDepartments(departmentsRes.value.data);
         })
         .catch(console.error)
         .finally(() => setLoading(false));
     };
 
     const fetchCoursesOnly = () => {
+        setLoading(true);
         api.get('/courses', { params: search ? { search } : {} })
             .then(res => setCourses(res.data))
-            .catch(console.error);
-    }
+            .catch(console.error)
+            .finally(() => setLoading(false));
+    };
+
+    const requestSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedCourses = [...courses].sort((a, b) => {
+        const valA = a[sortConfig.key] || '';
+        const valB = b[sortConfig.key] || '';
+        if (typeof valA === 'string') {
+            return sortConfig.direction === 'asc' 
+                ? valA.localeCompare(valB)
+                : valB.localeCompare(valA);
+        }
+        return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
+    });
 
     useEffect(() => {
         fetchData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Load everything on mount
+
+    // Debounce search to prevent UI unmounting/flickering
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchCoursesOnly(); // Call the specific fetch function for this component
+        }, 300);
+        return () => clearTimeout(timer);
     }, [search]);
 
     const openCreate = () => {
         setEditing(null);
-        setForm({ code: '', title: '', credits: 3, semester: 1, department: '', capacity: 60, facultyId: '' });
+        setForm({ code: '', title: '', credits: 3, semester: 1, department: '', departmentId: '', capacity: 60, facultyIds: [] });
         setModalOpen(true);
     };
 
     const openEdit = (c) => {
         setEditing(c);
-        setForm({ code: c.code, title: c.title, credits: c.credits, semester: c.semester, department: c.department, capacity: c.capacity, facultyId: c.facultyId || '' });
+        setForm({ 
+            code: c.code, 
+            title: c.title, 
+            credits: c.credits, 
+            semester: c.semester, 
+            department: c.department, 
+            departmentId: c.departmentId || '', 
+            capacity: c.capacity, 
+            facultyIds: c.faculties ? c.faculties.map(f => f.id) : []
+        });
         setModalOpen(true);
     };
 
@@ -65,7 +107,7 @@ export default function Courses() {
     const handleSave = async (e) => {
         e.preventDefault();
         try {
-            const data = { ...form, facultyId: form.facultyId ? parseInt(form.facultyId) : null };
+            const data = { ...form, facultyIds: form.facultyIds.map(id => parseInt(id)) };
             if (editing) {
                 await api.put(`/courses/${editing.id}`, data);
             } else {
@@ -90,7 +132,7 @@ export default function Courses() {
         }
     };
 
-    if (loading) return <div className="loading"><div className="spinner"></div></div>;
+    // Removed top-level loading check
 
     return (
         <div className="fade-in">
@@ -104,42 +146,59 @@ export default function Courses() {
                 <div className="toolbar-right">
                     <button className="btn btn-primary" onClick={openCreate}><Plus size={16} /> Add Subject</button>
                 </div>
-            </div>
-
-            <div className="table-wrapper">
+            </div>            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+                {loading && (
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                        background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(2px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+                    }}>
+                        <div className="spinner"></div>
+                    </div>
+                )}
                 <table>
                     <thead>
                         <tr>
-                            <th>Code</th>
-                            <th>Title</th>
-                            <th>Department</th>
-                            <th>Credits</th>
-                            <th>Semester</th>
+                            <th onClick={() => requestSort('code')} style={{ cursor: 'pointer' }}>Code {sortConfig.key === 'code' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('title')} style={{ cursor: 'pointer' }}>Title {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('credits')} style={{ cursor: 'pointer' }}>Credits {sortConfig.key === 'credits' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>Semester {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                             <th>Faculty</th>
-                            <th>Capacity</th>
+                            <th onClick={() => requestSort('capacity')} style={{ cursor: 'pointer' }}>Capacity {sortConfig.key === 'capacity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {courses.map(c => (
+                        {sortedCourses.map(c => (
                             <tr key={c.id}>
                                 <td style={{ fontWeight: 600, color: 'var(--accent-light)' }}>{c.code}</td>
                                 <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{c.title}</td>
                                 <td>{c.department}</td>
                                 <td>{c.credits}</td>
-                                <td>{c.semester}</td>
-                                <td>{c.faculty?.name || '—'}</td>
+                                <td>Semester {c.semester}</td>
+                                <td>
+                                    {c.faculties && c.faculties.length > 0 ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {c.faculties.map(f => (
+                                                <span key={f.id} style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>• {f.name}</span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned</span>
+                                    )}
+                                </td>
                                 <td>{c.capacity}</td>
                                 <td>
                                     <div className="btn-group">
-                                        <button className="btn btn-secondary btn-sm" onClick={() => viewRoster(c.id)} title="View Roster" aria-label={`View roster for ${c.title}`}><Users size={14} /></button>
                                         <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)} aria-label={`Edit ${c.title}`}><Edit2 size={14} /></button>
                                         <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)} aria-label={`Delete ${c.title}`}><Trash2 size={14} /></button>
+                                        <button className="btn btn-success btn-sm" onClick={() => viewRoster(c.id)} title="View Students"><Users size={14} /></button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
-                        {courses.length === 0 && (
+                        {sortedCourses.length === 0 && !loading && (
                             <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No subjects found</td></tr>
                         )}
                     </tbody>
@@ -189,19 +248,61 @@ export default function Courses() {
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Department</label>
-                                <select className="form-control" value={form.department} onChange={e => setForm({ ...form, department: e.target.value })} required>
+                                <select 
+                                    className="form-control" 
+                                    value={form.departmentId} 
+                                    onChange={e => {
+                                        const dept = departments.find(d => d.id === parseInt(e.target.value));
+                                        setForm({ ...form, departmentId: dept ? dept.id : '', department: dept ? dept.name : '' });
+                                    }} 
+                                    required
+                                >
                                     <option value="">Select...</option>
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Mathematics">Mathematics</option>
-                                    <option value="Physics">Physics</option>
+                                    {departments.map(d => (
+                                        <option key={d.id} value={d.id}>{d.name}</option>
+                                    ))}
                                 </select>
                             </div>
-                            <div className="form-group">
-                                <label>Assigned Faculty</label>
-                                <select className="form-control" value={form.facultyId} onChange={e => setForm({ ...form, facultyId: e.target.value })}>
-                                    <option value="">None</option>
-                                    {faculty.map(f => <option key={f.id} value={f.id}>{f.name} ({f.department})</option>)}
-                                </select>
+                            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                                <label style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                    Assigned Faculty
+                                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{form.facultyIds.length} Selected</span>
+                                </label>
+                                <div style={{ 
+                                    background: 'var(--bg-input)', 
+                                    border: '1px solid var(--border-color-strong)', 
+                                    borderRadius: 'var(--radius-md)',
+                                    maxHeight: '150px',
+                                    overflowY: 'auto',
+                                    padding: '8px'
+                                }}>
+                                    {faculty.map(f => (
+                                        <label key={f.id} style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: '8px', 
+                                            padding: '4px 8px',
+                                            cursor: 'pointer',
+                                            borderBottom: '1px solid var(--border-color-subtle)',
+                                            fontSize: '0.85rem',
+                                            textTransform: 'none',
+                                            fontWeight: 400
+                                        }}>
+                                            <input 
+                                                type="checkbox" 
+                                                checked={form.facultyIds.includes(f.id)} 
+                                                onChange={e => {
+                                                    const newIds = e.target.checked 
+                                                        ? [...form.facultyIds, f.id]
+                                                        : form.facultyIds.filter(id => id !== f.id);
+                                                    setForm({ ...form, facultyIds: newIds });
+                                                }}
+                                            />
+                                            {f.name} <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>({f.department})</span>
+                                        </label>
+                                    ))}
+                                    {faculty.length === 0 && <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>No faculty available</p>}
+                                </div>
                             </div>
                         </div>
                         <div className="form-row">

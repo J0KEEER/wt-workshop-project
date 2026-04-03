@@ -5,8 +5,27 @@ import {  authenticate, authorize  } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// GET /api/fees — List all fees (admin) or filter by student
-router.get('/', authenticate, async (req, res) => {
+// GET /api/fees/my-fees — Student portal: List personal dues
+router.get('/my-fees', authenticate, async (req, res) => {
+    try {
+        if (req.user.role !== 'student') {
+            return res.status(403).json({ error: 'Access restricted to students' });
+        }
+        const student = await Student.findOne({ where: { userId: req.user.id } });
+        if (!student) return res.status(404).json({ error: 'Student profile not found' });
+
+        const fees = await Fee.findAll({
+            where: { studentId: student.id },
+            order: [['dueDate', 'ASC']]
+        });
+        res.json(fees);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/fees — List all fees (admin/staff)
+router.get('/', authenticate, authorize('admin', 'staff'), async (req, res) => {
     try {
         const { studentId, status, type } = req.query;
         const where = {};
@@ -18,7 +37,6 @@ router.get('/', authenticate, async (req, res) => {
             where,
             include: [
                 { model: Student, as: 'student', attributes: ['id', 'rollNo', 'name'] },
-                { model: Payment, as: 'payments' },
             ],
             order: [['dueDate', 'DESC']],
         });
@@ -102,6 +120,53 @@ router.post('/payment', authenticate, async (req, res) => {
         res.status(201).json({ payment, fee: await Fee.findByPk(feeId) });
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }
+});
+
+// GET /api/fees/defaulters — Admin portal: List overdue fees
+router.get('/defaulters', authenticate, authorize('admin', 'staff'), async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const overdue = await Fee.findAll({
+            where: {
+                [Op.or]: [
+                    { status: 'overdue' },
+                    { 
+                        status: { [Op.ne]: 'paid' },
+                        dueDate: { [Op.lt]: today }
+                    }
+                ]
+            },
+            include: [{ model: Student, as: 'student', attributes: ['id', 'name', 'rollNo'] }]
+        });
+        res.json(overdue);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/fees/stats — General financial dashboard data
+router.get('/stats', authenticate, authorize('admin', 'staff'), async (req, res) => {
+    try {
+        const totalFees = await Fee.sum('amount') || 0;
+        const totalCollected = await Fee.sum('paidAmount') || 0;
+        const overdueCount = await Fee.count({ 
+            where: { 
+                [Op.or]: [
+                    { status: 'overdue' },
+                    { status: { [Op.ne]: 'paid' }, dueDate: { [Op.lt]: new Date().toISOString().split('T')[0] } }
+                ]
+            } 
+        });
+        
+        res.json({
+            totalFees,
+            totalCollected,
+            pendingAmount: totalFees - totalCollected,
+            overdueCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

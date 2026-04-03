@@ -133,4 +133,92 @@ router.get('/:id/results', authenticate, async (req, res) => {
     }
 });
 
+// GET /api/exams/:id/enrollment — Fetch all students enrolled in the course associated with this exam
+router.get('/:id/enrollment', authenticate, authorize('admin', 'faculty'), async (req, res) => {
+    try {
+        const exam = await Exam.findByPk(req.params.id);
+        if (!exam) return res.status(404).json({ error: 'Exam not found' });
+
+        const students = await Student.findAll({
+            include: [{
+                model: Course,
+                as: 'courses',
+                where: { id: exam.courseId },
+                attributes: []
+            }],
+            attributes: ['id', 'rollNo', 'name']
+        });
+        res.json(students);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/exams/:id/analytics
+router.get('/:id/analytics', authenticate, authorize('admin', 'faculty'), async (req, res) => {
+    try {
+        const exam = await Exam.findByPk(req.params.id, {
+            include: [{ model: ExamResult, as: 'results', include: [{ model: Student, as: 'student', attributes: ['name', 'rollNo'] }] }]
+        });
+        if (!exam) return res.status(404).json({ error: 'Exam not found' });
+
+        const results = exam.results || [];
+        if (results.length === 0) {
+            return res.json({
+                summary: { totalStudents: 0, averageMarks: 0, passPercentage: 0, highestScore: 0, lowestScore: 0 },
+                distribution: [],
+                topPerformers: []
+            });
+        }
+
+        const totalStudents = results.length;
+        const totalMarksSum = results.reduce((sum, r) => sum + r.marksObtained, 0);
+        const averageMarks = (totalMarksSum / totalStudents).toFixed(2);
+        
+        const marks = results.map(r => r.marksObtained);
+        const highestScore = Math.max(...marks);
+        const lowestScore = Math.min(...marks);
+        
+        const passedCount = results.filter(r => (r.marksObtained / exam.totalMarks) * 100 >= 40).length;
+        const passPercentage = ((passedCount / totalStudents) * 100).toFixed(2);
+
+        // Grade Distribution
+        const grades = { 'A+': 0, 'A': 0, 'B+': 0, 'B': 0, 'C': 0, 'D': 0, 'F': 0 };
+        results.forEach(r => {
+            if (grades[r.grade] !== undefined) grades[r.grade]++;
+            else grades['F']++;
+        });
+
+        const distribution = Object.entries(grades).map(([name, value]) => ({ name, value }));
+
+        // Top 5
+        const topPerformers = results
+            .sort((a, b) => b.marksObtained - a.marksObtained)
+            .slice(0, 5)
+            .map(r => ({
+                name: r.student.name,
+                rollNo: r.student.rollNo,
+                marks: r.marksObtained,
+                grade: r.grade
+            }));
+
+        const atRisk = results
+            .filter(r => r.grade === 'F' || r.grade === 'D')
+            .map(r => ({
+                name: r.student.name,
+                rollNo: r.student.rollNo,
+                grade: r.grade
+            }));
+
+        res.json({
+            summary: { totalStudents, averageMarks, passPercentage, highestScore, lowestScore },
+            distribution,
+            topPerformers,
+            atRisk
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;

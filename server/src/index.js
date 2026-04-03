@@ -25,6 +25,15 @@ import facultyRoutes from './routes/faculty.js';
 import dashboardRoutes from './routes/dashboard.js';
 import userRoutes from './routes/users.js';
 import departmentRoutes from './routes/departments.js';
+import holidayRoutes from './routes/holidays.js';
+import feedbackRoutes from './routes/feedback.js';
+import approvalRoutes from './routes/approvals.js';
+import eventRoutes from './routes/events.js';
+import personnelRoutes from './routes/personnel.js';
+import performanceRoutes from './routes/performance.js';
+import hostelRoutes from './routes/hostels.js';
+import transportRoutes from './routes/transport.js';
+import inventoryRoutes from './routes/inventory.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -32,8 +41,25 @@ const PORT = process.env.PORT || 5000;
 const HOST = '0.0.0.0';
 
 // Middleware
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+];
+
+if (process.env.CORS_ORIGIN) {
+    allowedOrigins.push(...process.env.CORS_ORIGIN.split(','));
+}
+
 app.use(cors({
-    origin: (origin, callback) => callback(null, true),
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
 }));
 app.use(express.json());
@@ -83,6 +109,16 @@ app.use('/api/faculty', facultyRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/departments', departmentRoutes);
+app.use('/api/holidays', holidayRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/admin/approvals', approvalRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/personnel', personnelRoutes);
+app.use('/api/performance', performanceRoutes);
+app.use('/api/hostels', hostelRoutes);
+app.use('/api/transport', transportRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

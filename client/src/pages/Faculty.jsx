@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Search, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, AlertTriangle, Users, GraduationCap, Mail, Phone, BookOpen } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
 
 export default function Faculty() {
+    const toast = useToast();
     const [facultyList, setFacultyList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -96,9 +98,10 @@ export default function Faculty() {
                 await api.post('/faculty', form);
             }
             setModalOpen(false);
+            toast.success(editing ? 'Faculty updated successfully' : 'Faculty created successfully');
             fetchFacultyOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error saving');
+            toast.error(err.response?.data?.error || 'Error saving');
         }
     };
 
@@ -106,9 +109,10 @@ export default function Faculty() {
         if (!deleteTarget) return;
         try {
             await api.delete(`/faculty/${deleteTarget.id}`);
+            toast.success('Faculty deleted successfully');
             fetchFacultyOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error deleting');
+            toast.error(err.response?.data?.error || 'Error deleting');
         } finally {
             setDeleteTarget(null);
         }
@@ -116,22 +120,39 @@ export default function Faculty() {
 
     return (
         <div className="fade-in">
-            <div className="toolbar">
-                <div className="toolbar-left">
-                    <div className="search-box">
-                        <Search size={16} />
-                        <input className="form-control" placeholder="Search faculty…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search faculty" />
+            <div className="card hero-card" style={{ marginBottom: '32px' }}>
+                <div className="card-body">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Institutional Faculty</h2>
+                            <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>Digital registry of academic staff, scholarly specializations, and departmental designations.</p>
+                        </div>
+                        <Users size={48} style={{ opacity: 0.2 }} />
                     </div>
                 </div>
-                <div className="toolbar-right">
-                    <button className="btn btn-primary" onClick={openCreate}><Plus size={16} /> Add Faculty</button>
+            </div>
+
+            <div className="toolbar glass-morph" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
+                <div className="toolbar-left">
+                    <div className="search-box">
+                        <Search size={18} />
+                        <input className="form-control" placeholder="Identify record by name or expertise…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search faculty" />
+                    </div>
+                </div>
+                <div className="toolbar-right" style={{ gap: '12px' }}>
+                    <div style={{ marginRight: '16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <strong>{sortedFacultyList.length}</strong> ACTIVE RECORDS
+                    </div>
+                    <button className="btn btn-primary" onClick={openCreate} style={{ padding: '10px 20px', borderRadius: '12px', fontWeight: 700 }}>
+                        <Plus size={18} /> Add Faculty
+                    </button>
                 </div>
             </div>
-            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+            <div className="table-wrapper glass-morph" style={{ position: 'relative', minHeight: '200px', borderRadius: '24px', overflow: 'hidden' }}>
                 {loading && (
                     <div style={{
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(2px)',
+                        background: 'rgba(10, 14, 26, 0.4)', backdropFilter: 'blur(8px)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
                     }}>
                         <div className="spinner"></div>
@@ -140,34 +161,62 @@ export default function Faculty() {
                 <table>
                     <thead>
                         <tr>
-                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('designation')} style={{ cursor: 'pointer' }}>Designation {sortConfig.key === 'designation' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th>Courses</th>
-                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th>Actions</th>
+                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer', padding: '20px' }}>IDENTIFIED NAME {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>CONTACT CHANNELS {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>DEPARTMENT {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('designation')} style={{ cursor: 'pointer' }}>DESIGNATION {sortConfig.key === 'designation' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th>COURSE LOAD</th>
+                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>STATUS {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th style={{ textAlign: 'right', paddingRight: '24px' }}>OPERATIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         {sortedFacultyList.map(f => (
-                            <tr key={f.id}>
-                                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{f.name}</td>
-                                <td>{f.email}</td>
-                                <td>{f.department}</td>
-                                <td><span className="badge badge-info">{f.designation}</span></td>
-                                <td>{f.courses?.map(c => c.code).join(', ') || '—'}</td>
-                                <td><span className={`badge ${f.status === 'active' ? 'badge-success' : 'badge-warning'}`}>{f.status}</span></td>
+                            <tr key={f.id} className="fade-in">
+                                <td style={{ padding: '16px 20px' }}>
+                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{f.name}</div>
+                                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><GraduationCap size={10} /> {f.specialization || 'Generalist'}</div>
+                                </td>
                                 <td>
-                                    <div className="btn-group">
-                                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(f)} aria-label={`Edit ${f.name}`}><Edit2 size={14} /></button>
-                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(f)} aria-label={`Delete ${f.name}`}><Trash2 size={14} /></button>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}><Mail size={12} style={{ opacity: 0.5 }} /> {f.email}</div>
+                                        {f.phone && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}><Phone size={12} style={{ opacity: 0.5 }} /> {f.phone}</div>}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>{f.department}</span>
+                                </td>
+                                <td>
+                                    <span className="badge badge-info" style={{ fontSize: '0.75rem', padding: '4px 10px', borderRadius: '8px', fontWeight: 700 }}>{f.designation}</span>
+                                </td>
+                                <td>
+                                    {f.courses && f.courses.length > 0 ? (
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                            {f.courses.map(c => (
+                                                <span key={c.id} className="badge badge-outline" style={{ fontSize: '0.65rem', borderColor: 'rgba(var(--accent-rgb), 0.3)' }}>{c.code}</span>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>None Assigned</span>
+                                    )}
+                                </td>
+                                <td><span className={`badge ${f.status === 'active' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '0.65rem' }}>{f.status.toUpperCase()}</span></td>
+                                <td style={{ textAlign: 'right', paddingRight: '20px' }}>
+                                    <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
+                                        <button className="btn btn-secondary btn-sm" style={{ padding: '8px', borderRadius: '10px' }} onClick={() => openEdit(f)} aria-label={`Edit ${f.name}`}><Edit2 size={14} /></button>
+                                        <button className="btn btn-danger btn-sm" style={{ padding: '8px', borderRadius: '10px' }} onClick={() => setDeleteTarget(f)} aria-label={`Delete ${f.name}`}><Trash2 size={14} /></button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
                         {sortedFacultyList.length === 0 && !loading && (
-                            <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No faculty found</td></tr>
+                            <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '64px' }}>
+                                <div className="empty-state">
+                                    <Users size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
+                                    <p style={{ margin: 0, fontWeight: 700, fontSize: '1.1rem' }}>No Educators Identified</p>
+                                    <p style={{ margin: '4px 0 0 0', opacity: 0.7 }}>Try adjusting your search criteria to locate staff.</p>
+                                </div>
+                            </td></tr>
                         )}
                     </tbody>
                 </table>

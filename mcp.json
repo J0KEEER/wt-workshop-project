@@ -4,8 +4,26 @@
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/",
       "headers": {
-        "Authorization": "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"
+        "Authorization": "REPLACE_WITH_GITHUB_PAT"
+      },
+      "//": "Recommendation: Store secrets in environment variables outside this file if possible."
+    },
+    "stitch": {
+      "serverUrl": "https://stitch.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-Api-Key": "REPLACE_WITH_GOOGLE_STITCH_API_KEY"
       }
+    },
+    "mongodb-mcp-server": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mongodb-mcp-server"
+      ],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://<USERNAME>:<PASSWORD>@miniprojectcluster.fmu4i4o.mongodb.net/?appName=miniprojectcluster"
+      },
+      "$typeName": "exa.cascade_plugins_pb.CascadePluginCommandTemplate"
     }
   }
 }

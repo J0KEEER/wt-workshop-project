@@ -10,7 +10,13 @@ dotenv.config();
 const router = express.Router();
 
 function generateTokens(user) {
-    const payload = { id: user.id, username: user.username, email: user.email, role: user.role };
+    const payload = { 
+        id: user.id, 
+        username: user.username, 
+        email: user.email, 
+        role: user.role,
+        batchExpiresAt: user.batchExpiresAt 
+    };
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
     const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' });
     return { accessToken, refreshToken };
@@ -98,6 +104,7 @@ router.post('/login', [
 
         if (!user) return res.status(401).json({ error: 'Invalid credentials' });
         if (!user.isActive) return res.status(403).json({ error: 'Account is disabled' });
+        if (!user.isApproved) return res.status(403).json({ error: 'Account pending admin approval' });
 
         const isValid = await user.validatePassword(password);
         if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
@@ -127,6 +134,7 @@ router.post('/register', [
 
         const user = await User.create({
             username, email, passwordHash: password, firstName, lastName, role,
+            isApproved: false, // Self-registration must be approved
         });
         const tokens = generateTokens(user);
         res.status(201).json({ user: user.toJSON(), ...tokens });

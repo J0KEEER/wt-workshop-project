@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Search, Trash2, Shield, AlertTriangle, X } from 'lucide-react';
+import { Search, Trash2, Shield, AlertTriangle, X, RefreshCw, Clock } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
 
 export default function Users() {
+    const toast = useToast();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -25,9 +28,10 @@ export default function Users() {
         if (!deleteTarget) return;
         try {
             await api.delete(`/users/${deleteTarget.id}`);
+            toast.success('User deleted successfully');
             fetchUsers();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error deleting');
+            toast.error(err.response?.data?.error || 'Error deleting');
         } finally {
             setDeleteTarget(null);
         }
@@ -36,9 +40,22 @@ export default function Users() {
     const toggleActive = async (user) => {
         try {
             await api.put(`/users/${user.id}`, { isActive: !user.isActive });
+            toast.success(`User ${user.isActive ? 'disabled' : 'activated'} successfully`);
             fetchUsers();
         } catch (err) {
-            alert('Error updating');
+            toast.error('Error updating user status');
+        }
+    };
+
+    const handleRenew = async (user) => {
+        try {
+            const newExpiry = new Date();
+            newExpiry.setHours(newExpiry.getHours() + 168); // +7 days
+            await api.put(`/users/${user.id}`, { batchExpiresAt: newExpiry });
+            toast.success(`Access extended for ${user.username}`);
+            fetchUsers();
+        } catch (err) {
+            toast.error('Error extending access');
         }
     };
 
@@ -50,6 +67,27 @@ export default function Users() {
         student: 'badge-success',
         librarian: 'badge-warning',
         staff: 'badge-default',
+    };
+
+    const renderExpiry = (user) => {
+        if (user.role !== 'student' || !user.batchExpiresAt) return '-';
+        
+        const expiry = new Date(user.batchExpiresAt);
+        const now = new Date();
+        const diffHours = (expiry - now) / (1000 * 60 * 60);
+
+        if (diffHours < 0) {
+            return <span className="badge badge-danger"><AlertTriangle size={10} style={{ marginRight: 4 }} /> Expired</span>;
+        }
+        if (diffHours < 24) {
+            return <span className="badge badge-warning"><Clock size={10} style={{ marginRight: 4 }} /> Soon</span>;
+        }
+        
+        return (
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                {expiry.toLocaleDateString()}
+            </span>
+        );
     };
 
     return (
@@ -83,6 +121,7 @@ export default function Users() {
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
+                            <th>Expiry</th>
                             <th>Active</th>
                             <th>Actions</th>
                         </tr>
@@ -100,6 +139,7 @@ export default function Users() {
                                         {u.role}
                                     </span>
                                 </td>
+                                <td>{renderExpiry(u)}</td>
                                 <td>
                                     <button
                                         className={`btn btn-sm ${u.isActive ? 'btn-success' : 'btn-danger'}`}
@@ -109,7 +149,19 @@ export default function Users() {
                                     </button>
                                 </td>
                                 <td>
-                                    <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(u)} aria-label={`Delete user ${u.username}`}><Trash2 size={14} /></button>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        {u.role === 'student' && (
+                                            <button 
+                                                className="btn btn-secondary btn-sm" 
+                                                onClick={() => handleRenew(u)} 
+                                                title="Renew Access (7 days)"
+                                                aria-label="Renew user access"
+                                            >
+                                                <RefreshCw size={14} />
+                                            </button>
+                                        )}
+                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(u)} aria-label={`Delete user ${u.username}`}><Trash2 size={14} /></button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -121,30 +173,20 @@ export default function Users() {
             </div>
 
             {/* Delete Confirmation Modal */}
-            {deleteTarget && (
-                <div className="modal-overlay" onClick={() => setDeleteTarget(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
-                        <div className="modal-header">
-                            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <AlertTriangle size={20} style={{ color: 'var(--danger)' }} />
-                                Confirm Deletion
-                            </h3>
-                            <button className="modal-close" onClick={() => setDeleteTarget(null)}><X size={18} /></button>
-                        </div>
-                        <div className="modal-body">
-                            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                                Are you sure you want to delete user <strong style={{ color: 'var(--text-primary)' }}>{deleteTarget.username}</strong>? This action cannot be undone.
-                            </p>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
-                            <button className="btn btn-danger" onClick={confirmDelete}>
-                                <Trash2 size={14} /> Delete User
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ModalOverlay isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
+                <ModalHeader title="Confirm Deletion" icon={AlertTriangle} onClose={() => setDeleteTarget(null)} />
+                <ModalBody>
+                    <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                        Are you sure you want to delete user <strong style={{ color: 'var(--text-primary)' }}>{deleteTarget?.username}</strong>? This action cannot be undone.
+                    </p>
+                </ModalBody>
+                <ModalFooter>
+                    <button className="btn btn-secondary" onClick={() => setDeleteTarget(null)}>Cancel</button>
+                    <button className="btn btn-danger" onClick={confirmDelete}>
+                        <Trash2 size={14} /> Delete User
+                    </button>
+                </ModalFooter>
+            </ModalOverlay>
         </div>
     );
 }

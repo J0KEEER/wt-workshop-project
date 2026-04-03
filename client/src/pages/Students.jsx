@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import api from '../services/api';
-import { Plus, Edit2, Trash2, Search, AlertTriangle, BookOpen } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, AlertTriangle, BookOpen, Users, GraduationCap, Filter, Download } from 'lucide-react';
 import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
 
 export default function Students() {
+    const toast = useToast();
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -97,9 +96,10 @@ export default function Students() {
                 );
             }
             setModalOpen(false);
+            toast.success(editing ? 'Student updated successfully' : 'Student created successfully');
             fetchStudentsOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error saving');
+            toast.error(err.response?.data?.error || 'Error saving');
         }
     };
 
@@ -140,9 +140,10 @@ export default function Students() {
         if (!deleteTarget) return;
         try {
             await api.delete(`/students/${deleteTarget.id}`);
+            toast.success('Student deleted successfully');
             fetchStudentsOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error deleting');
+            toast.error(err.response?.data?.error || 'Error deleting');
         } finally {
             setDeleteTarget(null);
         }
@@ -152,64 +153,196 @@ export default function Students() {
 
     return (
         <div className="fade-in">
-            <div className="toolbar">
-                <div className="toolbar-left">
-                    <div className="search-box">
-                        <Search size={16} />
-                        <input className="form-control" placeholder="Search students…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search students" />
+            <div className="hero-card" style={{ 
+                background: 'linear-gradient(135deg, var(--accent-dark) 0%, #1e1e2e 100%)',
+                padding: '40px',
+                borderRadius: '32px',
+                marginBottom: '32px',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+            }}>
+                <div style={{ position: 'relative', zIndex: 2 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                        <div className="status-dot status-online" style={{ width: '12px', height: '12px' }}></div>
+                        <span style={{ color: 'var(--accent-light)', fontWeight: 800, letterSpacing: '2px', fontSize: '0.75rem' }}>INSTITUTIONAL REGISTRY</span>
                     </div>
+                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                        <GraduationCap size={40} className="text-accent" strokeWidth={2.5} /> Scholar Directory
+                    </h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '12px', maxWidth: '600px', lineHeight: '1.6' }}>
+                        Comprehensive academic database managing student profiles, institutional enrollments, and performance metrics across all departments.
+                    </p>
                 </div>
-                <div className="toolbar-right">
-                    <button className="btn btn-primary" onClick={openCreate} id="add-student-btn"><Plus size={16} /> Add Student</button>
+                <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.05 }}>
+                    <Users size={300} strokeWidth={1} />
                 </div>
             </div>
 
-            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
-                {loading && (
-                    <div style={{
-                        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(var(--bg-rgb), 0.7)', backdropFilter: 'blur(2px)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
+            <div className="toolbar glass-morph" style={{ 
+                padding: '20px 24px', 
+                borderRadius: '24px', 
+                marginBottom: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '20px'
+            }}>
+                <div className="toolbar-left" style={{ flex: 1 }}>
+                    <div className="search-box glass-morph" style={{ maxWidth: '400px', width: '100%' }}>
+                        <Search size={18} className="text-accent" />
+                        <input 
+                            className="form-control" 
+                            placeholder="Identify scholars by name or roll identifier..." 
+                            value={search} 
+                            onChange={e => setSearch(e.target.value)} 
+                            style={{ background: 'transparent', border: 'none', paddingLeft: '10px' }}
+                        />
+                    </div>
+                </div>
+                <div className="toolbar-right" style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn btn-outline" style={{ borderRadius: '14px' }}>
+                        <Filter size={16} /> Filters
+                    </button>
+                    <button className="btn btn-primary" onClick={openCreate} id="add-student-btn" style={{ 
+                        borderRadius: '14px', 
+                        padding: '10px 24px',
+                        fontWeight: 700,
+                        boxShadow: 'var(--accent-glow)'
                     }}>
-                        <div className="spinner"></div>
+                        <Plus size={18} strokeWidth={3} /> ADD SCHOLAR
+                    </button>
+                </div>
+            </div>
+
+            <div className="table-wrapper glass-morph" style={{ 
+                borderRadius: '24px', 
+                overflow: 'hidden',
+                border: '1px solid rgba(255,255,255,0.05)'
+            }}>
+                {loading && (
+                    <div className="loading-view" style={{ 
+                        position: 'absolute', 
+                        inset: 0, 
+                        zIndex: 10, 
+                        background: 'rgba(10, 10, 15, 0.7)', 
+                        backdropFilter: 'blur(8px)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <div className="spinner" style={{ width: '40px', height: '40px', borderTopColor: 'var(--accent)' }}></div>
+                        <span className="loading-text" style={{ marginTop: '16px', fontWeight: 600, color: 'var(--accent-light)' }}>SYNCHRONIZING RECORDS...</span>
                     </div>
                 )}
                 <table>
                     <thead>
                         <tr>
-                            <th onClick={() => requestSort('rollNo')} style={{ cursor: 'pointer' }}>Roll No {sortConfig.key === 'rollNo' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>Name {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>Email {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>semester {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th>Subjects</th>
-                            <th>Actions</th>
+                            <th onClick={() => requestSort('rollNo')} style={{ cursor: 'pointer', padding: '24px' }}>
+                                ROLL IDENTIFIER {sortConfig.key === 'rollNo' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => requestSort('name')} style={{ cursor: 'pointer' }}>
+                                FULL NAME {sortConfig.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => requestSort('email')} style={{ cursor: 'pointer' }}>
+                                DIGITAL CONTACT {sortConfig.key === 'email' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>
+                                FACULTY {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>
+                                SEM {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th onClick={() => requestSort('status')} style={{ cursor: 'pointer' }}>
+                                STATUS {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                            </th>
+                            <th style={{ textAlign: 'right', paddingRight: '24px' }}>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         {sortedStudents.map(s => (
-                            <tr key={s.id}>
-                                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.rollNo}</td>
-                                <td>{s.name}</td>
-                                <td>{s.email}</td>
-                                <td>{s.department}</td>
-                                <td>{s.semester}</td>
-                                <td><span className={`badge ${s.status === 'active' ? 'badge-success' : 'badge-warning'}`}>{s.status}</span></td>
-                                <td>{s.courses?.length || 0}</td>
+                            <tr key={s.id} className="fade-in hover-row">
+                                <td style={{ padding: '16px 24px' }}>
+                                    <code style={{ 
+                                        background: 'rgba(var(--accent-rgb), 0.1)', 
+                                        color: 'var(--accent-light)', 
+                                        padding: '4px 8px', 
+                                        borderRadius: '8px',
+                                        fontWeight: 800,
+                                        fontSize: '0.85rem'
+                                    }}>
+                                        {s.rollNo}
+                                    </code>
+                                </td>
                                 <td>
+                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{s.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                        <BookOpen size={10} /> {s.courses?.length || 0} Subjects Enrolled
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{s.email}</div>
+                                </td>
+                                <td>
+                                    <span className="badge badge-outline" style={{ border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem' }}>
+                                        {s.department?.toUpperCase() || 'UNASSIGNED'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style={{ 
+                                        width: '28px', 
+                                        height: '28px', 
+                                        borderRadius: '50%', 
+                                        background: 'var(--bg-card)', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        fontWeight: 800,
+                                        fontSize: '0.8rem',
+                                        border: '1px solid rgba(255,255,255,0.05)'
+                                    }}>
+                                        {s.semester}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div className={`status-dot ${s.status === 'active' ? 'status-online' : 'status-offline'}`} style={{ width: '8px', height: '8px' }}></div>
+                                        <span style={{ 
+                                            fontSize: '0.7rem', 
+                                            fontWeight: 800, 
+                                            textTransform: 'uppercase',
+                                            color: s.status === 'active' ? 'var(--success)' : 'var(--danger)',
+                                            letterSpacing: '1px'
+                                        }}>
+                                            {s.status}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td style={{ textAlign: 'right', paddingRight: '24px' }}>
                                     <div className="btn-group">
-                                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)} aria-label={`Edit ${s.name}`}><Edit2 size={14} /></button>
-                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(s)} aria-label={`Delete ${s.name}`}><Trash2 size={14} /></button>
+                                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)} title="Update Profile">
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(s)} title="Revoke Access">
+                                            <Trash2 size={14} />
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
-                        {sortedStudents.length === 0 && !loading && (
-                            <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No students found</td></tr>
-                        )}
                     </tbody>
                 </table>
+                {!loading && sortedStudents.length === 0 && (
+                    <div className="empty-state" style={{ padding: '80px 0' }}>
+                        <div style={{ opacity: 0.3, marginBottom: '20px' }}>
+                            <Search size={64} strokeWidth={1} />
+                        </div>
+                        <h3 style={{ fontWeight: 800 }}>No Academic Records Found</h3>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>The search query for "{search}" yielded zero institutional results.</p>
+                        <button className="btn btn-outline" onClick={() => setSearch('')} style={{ marginTop: '20px' }}>Clear Synchronizer</button>
+                    </div>
+                )}
             </div>
 
             {/* Modal */}

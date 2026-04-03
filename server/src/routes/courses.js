@@ -1,14 +1,14 @@
 import { Op } from "sequelize";
 import express from 'express';
-import {  Course, Faculty, Student, Enrollment, Department  } from '../models/index.js';
-import {  authenticate, authorize  } from '../middleware/auth.js';
+import { Course, Faculty, Student, Enrollment, Department, Timetable } from '../models/index.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // GET /api/courses
 router.get('/', authenticate, async (req, res) => {
     try {
-        const { department, semester, status, search } = req.query;
+        const { department, semester, status, search, dayOfWeek } = req.query;
         const where = {};
         if (department) where.department = department;
         if (semester) where.semester = parseInt(semester);
@@ -21,12 +21,23 @@ router.get('/', authenticate, async (req, res) => {
             ];
         }
 
+        const include = [
+            { model: Faculty, as: 'faculties', attributes: ['id', 'name', 'department'] },
+            { model: Department, as: 'departmentRef', attributes: ['name', 'code'] }
+        ];
+
+        if (dayOfWeek !== undefined) {
+            include.push({
+                model: Timetable,
+                as: 'schedule',
+                where: { dayOfWeek: parseInt(dayOfWeek) },
+                required: true // Join to only show courses with this schedule
+            });
+        }
+
         const courses = await Course.findAll({
             where,
-            include: [
-                { model: Faculty, as: 'faculties', attributes: ['id', 'name', 'department'] },
-                { model: Department, as: 'departmentRef', attributes: ['name', 'code'] }
-            ],
+            include,
             order: [['title', 'ASC']],
         });
         res.json(courses);
@@ -42,6 +53,7 @@ router.get('/:id', authenticate, async (req, res) => {
             include: [
                 { model: Faculty, as: 'faculties' },
                 { model: Student, as: 'students', through: { attributes: ['status', 'term'] } },
+                { model: Timetable, as: 'schedule' }
             ],
         });
         if (!course) return res.status(404).json({ error: 'Course not found' });

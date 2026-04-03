@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Search, Users, AlertTriangle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Users, AlertTriangle, BookOpen, GraduationCap, Layers } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
 
 export default function Courses() {
+    const toast = useToast();
     const [courses, setCourses] = useState([]);
     const [faculty, setFaculty] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ export default function Courses() {
             setRoster(res.data);
             setRosterOpen(courseId);
         } catch (err) {
-            alert('Error loading roster');
+            toast.error('Error loading roster');
         }
     };
 
@@ -114,9 +116,10 @@ export default function Courses() {
                 await api.post('/courses', data);
             }
             setModalOpen(false);
+            toast.success(editing ? 'Subject updated successfully' : 'Subject created successfully');
             fetchCoursesOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error saving');
+            toast.error(err.response?.data?.error || 'Error saving');
         }
     };
 
@@ -124,9 +127,10 @@ export default function Courses() {
         if (!deleteTarget) return;
         try {
             await api.delete(`/courses/${deleteTarget.id}`);
+            toast.success('Subject deleted successfully');
             fetchCoursesOnly();
         } catch (err) {
-            alert(err.response?.data?.error || 'Error deleting');
+            toast.error(err.response?.data?.error || 'Error deleting');
         } finally {
             setDeleteTarget(null);
         }
@@ -136,21 +140,38 @@ export default function Courses() {
 
     return (
         <div className="fade-in">
-            <div className="toolbar">
-                <div className="toolbar-left">
-                    <div className="search-box">
-                        <Search size={16} />
-                        <input className="form-control" placeholder="Search subjects…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search subjects" />
+            <div className="card hero-card" style={{ marginBottom: '32px' }}>
+                <div className="card-body">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Academic Curriculum</h2>
+                            <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>Centralized subject management, credit distribution, and faculty assignments across all departments.</p>
+                        </div>
+                        <BookOpen size={48} style={{ opacity: 0.2 }} />
                     </div>
                 </div>
-                <div className="toolbar-right">
-                    <button className="btn btn-primary" onClick={openCreate}><Plus size={16} /> Add Subject</button>
+            </div>
+
+            <div className="toolbar glass-morph" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
+                <div className="toolbar-left">
+                    <div className="search-box">
+                        <Search size={18} />
+                        <input className="form-control" placeholder="Identify record by code or title…" value={search} onChange={e => setSearch(e.target.value)} aria-label="Search subjects" />
+                    </div>
                 </div>
-            </div>            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px' }}>
+                <div className="toolbar-right" style={{ gap: '12px' }}>
+                    <div style={{ marginRight: '16px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        <strong>{sortedCourses.length}</strong> CURRICULUM ITEMS
+                    </div>
+                    <button className="btn btn-primary" onClick={openCreate} style={{ padding: '10px 20px', borderRadius: '12px', fontWeight: 700 }}>
+                        <Plus size={18} /> Add Subject
+                    </button>
+                </div>
+            </div>            <div className="table-wrapper glass-morph" style={{ position: 'relative', minHeight: '200px', borderRadius: '24px', overflow: 'hidden' }}>
                 {loading && (
                     <div style={{
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                        background: 'rgba(10, 14, 26, 0.7)', backdropFilter: 'blur(2px)',
+                        background: 'rgba(10, 14, 26, 0.4)', backdropFilter: 'blur(8px)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10
                     }}>
                         <div className="spinner"></div>
@@ -159,47 +180,71 @@ export default function Courses() {
                 <table>
                     <thead>
                         <tr>
-                            <th onClick={() => requestSort('code')} style={{ cursor: 'pointer' }}>Code {sortConfig.key === 'code' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('title')} style={{ cursor: 'pointer' }}>Title {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>Department {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('credits')} style={{ cursor: 'pointer' }}>Credits {sortConfig.key === 'credits' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>Semester {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th>Faculty</th>
-                            <th onClick={() => requestSort('capacity')} style={{ cursor: 'pointer' }}>Capacity {sortConfig.key === 'capacity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
-                            <th>Actions</th>
+                            <th onClick={() => requestSort('code')} style={{ cursor: 'pointer', padding: '20px' }}>SUBJECT CODE {sortConfig.key === 'code' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('title')} style={{ cursor: 'pointer' }}>TITULAR DESIGNATION {sortConfig.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('department')} style={{ cursor: 'pointer' }}>DEPARTMENT {sortConfig.key === 'department' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('credits')} style={{ cursor: 'pointer' }}>CREDITS {sortConfig.key === 'credits' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th onClick={() => requestSort('semester')} style={{ cursor: 'pointer' }}>SEMESTER {sortConfig.key === 'semester' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th>ASSIGNED FACULTY</th>
+                            <th onClick={() => requestSort('capacity')} style={{ cursor: 'pointer' }}>CAPACITY {sortConfig.key === 'capacity' && (sortConfig.direction === 'asc' ? '↑' : '↓')}</th>
+                            <th style={{ textAlign: 'right', paddingRight: '24px' }}>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
                         {sortedCourses.map(c => (
-                            <tr key={c.id}>
-                                <td style={{ fontWeight: 600, color: 'var(--accent-light)' }}>{c.code}</td>
-                                <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{c.title}</td>
-                                <td>{c.department}</td>
-                                <td>{c.credits}</td>
-                                <td>Semester {c.semester}</td>
+                            <tr key={c.id} className="fade-in">
+                                <td style={{ padding: '16px 20px' }}>
+                                    <div style={{ fontWeight: 800, color: 'var(--accent-light)', fontSize: '0.95rem', letterSpacing: '0.5px' }}>{c.code}</div>
+                                </td>
+                                <td>
+                                    <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{c.title}</div>
+                                </td>
+                                <td>
+                                    <span className="badge badge-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem' }}>
+                                        <Layers size={10} /> {c.department}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{c.credits}</div>
+                                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Credits</div>
+                                </td>
+                                <td>
+                                    <div style={{ fontWeight: 600 }}>SEM {c.semester}</div>
+                                </td>
                                 <td>
                                     {c.faculties && c.faculties.length > 0 ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                             {c.faculties.map(f => (
-                                                <span key={f.id} style={{ fontSize: '0.8rem', color: 'var(--text-primary)' }}>• {f.name}</span>
+                                                <span key={f.id} className="badge badge-info" style={{ fontSize: '0.65rem', padding: '2px 8px', borderRadius: '8px' }}>{f.name}</span>
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Unassigned</span>
+                                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>Not Commissioned</span>
                                     )}
                                 </td>
-                                <td>{c.capacity}</td>
                                 <td>
-                                    <div className="btn-group">
-                                        <button className="btn btn-secondary btn-sm" onClick={() => openEdit(c)} aria-label={`Edit ${c.title}`}><Edit2 size={14} /></button>
-                                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteTarget(c)} aria-label={`Delete ${c.title}`}><Trash2 size={14} /></button>
-                                        <button className="btn btn-success btn-sm" onClick={() => viewRoster(c.id)} title="View Students"><Users size={14} /></button>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Users size={14} style={{ opacity: 0.5 }} />
+                                        <span style={{ fontWeight: 800 }}>{c.capacity}</span>
+                                    </div>
+                                </td>
+                                <td style={{ textAlign: 'right', paddingRight: '20px' }}>
+                                    <div className="btn-group" style={{ justifyContent: 'flex-end' }}>
+                                        <button className="btn btn-secondary btn-sm" style={{ padding: '8px', borderRadius: '10px' }} onClick={() => openEdit(c)} aria-label={`Edit ${c.title}`}><Edit2 size={14} /></button>
+                                        <button className="btn btn-success btn-sm" style={{ padding: '8px', borderRadius: '10px' }} onClick={() => viewRoster(c.id)} title="View Students"><Users size={14} /></button>
+                                        <button className="btn btn-danger btn-sm" style={{ padding: '8px', borderRadius: '10px' }} onClick={() => setDeleteTarget(c)} aria-label={`Delete ${c.title}`}><Trash2 size={14} /></button>
                                     </div>
                                 </td>
                             </tr>
                         ))}
                         {sortedCourses.length === 0 && !loading && (
-                            <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '32px' }}>No subjects found</td></tr>
+                            <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '64px' }}>
+                                <div className="empty-state">
+                                    <GraduationCap size={48} style={{ opacity: 0.1, marginBottom: '16px' }} />
+                                    <p style={{ margin: 0, fontWeight: 700, fontSize: '1.1rem' }}>Registry Void</p>
+                                    <p style={{ margin: '4px 0 0 0', opacity: 0.7 }}>No academic subjects were identified matching your query.</p>
+                                </div>
+                            </td></tr>
                         )}
                     </tbody>
                 </table>

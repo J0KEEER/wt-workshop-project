@@ -11,6 +11,12 @@ export function authenticate(req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // REQ-02: Check for batch access expiry
+        if (decoded.batchExpiresAt && new Date(decoded.batchExpiresAt) < new Date()) {
+            return res.status(403).json({ error: 'Your batch access has expired. Please contact administration.' });
+        }
+
         req.user = decoded;
         next();
     } catch (err) {

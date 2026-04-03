@@ -81,4 +81,26 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
     }
 });
 
+// GET /api/faculty/my-schedule — Full weekly timetable for logged-in faculty
+router.get('/my-schedule', authenticate, async (req, res) => {
+    try {
+        const { id: userId } = req.user;
+        const faculty = await Faculty.findOne({ where: { userId } });
+        if (!faculty) return res.status(404).json({ error: 'Faculty profile not found' });
+
+        const assignments = await CourseFaculty.findAll({ where: { facultyId: faculty.id } });
+        const courseIds = assignments.map(a => a.courseId);
+
+        const schedule = await Timetable.findAll({
+            where: { courseId: { [Op.in]: courseIds } },
+            include: [{ model: Course, as: 'course', attributes: ['id', 'code', 'title'] }],
+            order: [['dayOfWeek', 'ASC'], ['startTime', 'ASC']]
+        });
+
+        res.json(schedule);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;

@@ -19,6 +19,11 @@ const Faculty = sequelize.define('Faculty', {
         type: DataTypes.ENUM('active', 'on_leave', 'retired', 'resigned'),
         defaultValue: 'active',
     },
+    baseSalary: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00,
+        field: 'base_salary'
+    },
 });
 
 export default Faculty;

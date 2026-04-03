@@ -63,12 +63,15 @@ export default function Login() {
                     </button>
                 </form>
 
+                <div className="login-footer" style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.9rem' }}>
+                    Don't have an account? <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Create Request</Link>
+                </div>
+
                 <div className="login-hint">
                     <strong>Demo Credentials:</strong><br />
                     Admin: admin / admin123<br />
-                    Faculty: dr.smith / fac123<br />
-                    Student: alice / stu123<br />
-                    Librarian: librarian / lib123
+                    Faculty: shivangi / fac123<br />
+                    Student: alice / stu123
                 </div>
             </div>
         </div>

@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { useToast } from '../context/ToastContext';
 import { Plus, Edit2, Trash2, Search, AlertTriangle, BookOpen, Users, GraduationCap, Filter, Download } from 'lucide-react';
 import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
 
@@ -153,35 +156,9 @@ export default function Students() {
 
     return (
         <div className="fade-in">
-            <div className="hero-card" style={{ 
-                background: 'linear-gradient(135deg, var(--accent-dark) 0%, #1e1e2e 100%)',
-                padding: '40px',
-                borderRadius: '32px',
-                marginBottom: '32px',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
-            }}>
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                        <div className="status-dot status-online" style={{ width: '12px', height: '12px' }}></div>
-                        <span style={{ color: 'var(--accent-light)', fontWeight: 800, letterSpacing: '2px', fontSize: '0.75rem' }}>INSTITUTIONAL REGISTRY</span>
-                    </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <GraduationCap size={40} className="text-accent" strokeWidth={2.5} /> Scholar Directory
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '12px', maxWidth: '600px', lineHeight: '1.6' }}>
-                        Comprehensive academic database managing student profiles, institutional enrollments, and performance metrics across all departments.
-                    </p>
-                </div>
-                <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.05 }}>
-                    <Users size={300} strokeWidth={1} />
-                </div>
-            </div>
-
-            <div className="toolbar glass-morph" style={{ 
+            <div className="toolbar" style={{ 
                 padding: '20px 24px', 
-                borderRadius: '24px', 
+                borderRadius: 'var(--radius-lg)', 
                 marginBottom: '24px',
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -189,7 +166,7 @@ export default function Students() {
                 gap: '20px'
             }}>
                 <div className="toolbar-left" style={{ flex: 1 }}>
-                    <div className="search-box glass-morph" style={{ maxWidth: '400px', width: '100%' }}>
+                    <div className="search-box" style={{ maxWidth: '400px', width: '100%' }}>
                         <Search size={18} className="text-accent" />
                         <input 
                             className="form-control" 
@@ -201,22 +178,22 @@ export default function Students() {
                     </div>
                 </div>
                 <div className="toolbar-right" style={{ display: 'flex', gap: '12px' }}>
-                    <button className="btn btn-outline" style={{ borderRadius: '14px' }}>
+                    <button className="btn btn-outline" style={{ borderRadius: 'var(--radius-md)' }}>
                         <Filter size={16} /> Filters
                     </button>
                     <button className="btn btn-primary" onClick={openCreate} id="add-student-btn" style={{ 
-                        borderRadius: '14px', 
+                        borderRadius: 'var(--radius-md)', 
                         padding: '10px 24px',
                         fontWeight: 700,
-                        boxShadow: 'var(--accent-glow)'
+                        boxShadow: 'var(--shadow-md)'
                     }}>
                         <Plus size={18} strokeWidth={3} /> ADD SCHOLAR
                     </button>
                 </div>
             </div>
 
-            <div className="table-wrapper glass-morph" style={{ 
-                borderRadius: '24px', 
+            <div className="table-wrapper" style={{ 
+                borderRadius: 'var(--radius-lg)', 
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,0.05)'
             }}>
@@ -225,7 +202,7 @@ export default function Students() {
                         position: 'absolute', 
                         inset: 0, 
                         zIndex: 10, 
-                        background: 'rgba(10, 10, 15, 0.7)', 
+                        background: 'var(--overlay-bg)', 
                         backdropFilter: 'blur(8px)',
                         display: 'flex',
                         flexDirection: 'column',
@@ -269,14 +246,14 @@ export default function Students() {
                                         color: 'var(--accent-light)', 
                                         padding: '4px 8px', 
                                         borderRadius: '8px',
-                                        fontWeight: 800,
+                                        fontWeight: 600,
                                         fontSize: '0.85rem'
                                     }}>
                                         {s.rollNo}
                                     </code>
                                 </td>
                                 <td>
-                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{s.name}</div>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{s.name}</div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                                         <BookOpen size={10} /> {s.courses?.length || 0} Subjects Enrolled
                                     </div>
@@ -285,7 +262,7 @@ export default function Students() {
                                     <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{s.email}</div>
                                 </td>
                                 <td>
-                                    <span className="badge badge-outline" style={{ border: '1px solid rgba(255,255,255,0.1)', fontSize: '0.75rem' }}>
+                                    <span className="badge badge-outline" style={{ border: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
                                         {s.department?.toUpperCase() || 'UNASSIGNED'}
                                     </span>
                                 </td>
@@ -298,9 +275,9 @@ export default function Students() {
                                         display: 'flex', 
                                         alignItems: 'center', 
                                         justifyContent: 'center',
-                                        fontWeight: 800,
+                                        fontWeight: 600,
                                         fontSize: '0.8rem',
-                                        border: '1px solid rgba(255,255,255,0.05)'
+                                        border: '1px solid var(--border-color)'
                                     }}>
                                         {s.semester}
                                     </div>
@@ -310,7 +287,7 @@ export default function Students() {
                                         <div className={`status-dot ${s.status === 'active' ? 'status-online' : 'status-offline'}`} style={{ width: '8px', height: '8px' }}></div>
                                         <span style={{ 
                                             fontSize: '0.7rem', 
-                                            fontWeight: 800, 
+                                            fontWeight: 600, 
                                             textTransform: 'uppercase',
                                             color: s.status === 'active' ? 'var(--success)' : 'var(--danger)',
                                             letterSpacing: '1px'
@@ -338,7 +315,7 @@ export default function Students() {
                         <div style={{ opacity: 0.3, marginBottom: '20px' }}>
                             <Search size={64} strokeWidth={1} />
                         </div>
-                        <h3 style={{ fontWeight: 800 }}>No Academic Records Found</h3>
+                        <h3 style={{ fontWeight: 600 }}>No Academic Records Found</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>The search query for "{search}" yielded zero institutional results.</p>
                         <button className="btn btn-outline" onClick={() => setSearch('')} style={{ marginTop: '20px' }}>Clear Synchronizer</button>
                     </div>
@@ -436,7 +413,7 @@ export default function Students() {
                                         padding: '6px 10px',
                                         borderRadius: 'var(--radius-sm)',
                                         cursor: 'pointer',
-                                        background: selectedCourses.includes(c.id) ? 'var(--accent-glow)' : 'transparent',
+                                        background: selectedCourses.includes(c.id) ? 'var(--shadow-md)' : 'transparent',
                                         border: selectedCourses.includes(c.id) ? '1px solid var(--accent)' : '1px solid transparent',
                                         fontSize: '0.85rem',
                                         transition: 'all 0.15s ease',

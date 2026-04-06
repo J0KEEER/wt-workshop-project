@@ -120,19 +120,7 @@ export default function Faculty() {
 
     return (
         <div className="fade-in">
-            <div className="card hero-card" style={{ marginBottom: '32px' }}>
-                <div className="card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Institutional Faculty</h2>
-                            <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>Digital registry of academic staff, scholarly specializations, and departmental designations.</p>
-                        </div>
-                        <Users size={48} style={{ opacity: 0.2 }} />
-                    </div>
-                </div>
-            </div>
-
-            <div className="toolbar glass-morph" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
+            <div className="toolbar" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
                 <div className="toolbar-left">
                     <div className="search-box">
                         <Search size={18} />
@@ -148,7 +136,7 @@ export default function Faculty() {
                     </button>
                 </div>
             </div>
-            <div className="table-wrapper glass-morph" style={{ position: 'relative', minHeight: '200px', borderRadius: '24px', overflow: 'hidden' }}>
+            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                 {loading && (
                     <div style={{
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -174,7 +162,7 @@ export default function Faculty() {
                         {sortedFacultyList.map(f => (
                             <tr key={f.id} className="fade-in">
                                 <td style={{ padding: '16px 20px' }}>
-                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{f.name}</div>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>{f.name}</div>
                                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><GraduationCap size={10} /> {f.specialization || 'Generalist'}</div>
                                 </td>
                                 <td>

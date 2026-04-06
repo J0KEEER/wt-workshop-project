@@ -1,3 +1,7 @@
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { 
     DollarSign, CreditCard, Plus, 
     AlertCircle, CheckCircle, TrendingUp, Calendar, Send,
@@ -92,73 +96,34 @@ export default function Fees() {
 
     return (
         <div className="fade-in">
-            <div className="hero-card" style={{ 
-                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-                padding: '40px',
-                borderRadius: '32px',
-                marginBottom: '32px',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                        <div className="status-dot status-online" style={{ width: '12px', height: '12px' }}></div>
-                        <span style={{ color: 'var(--accent-light)', fontWeight: 800, letterSpacing: '2px', fontSize: '0.75rem' }}>FINANCIAL OPERATIONS</span>
-                    </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <Wallet size={40} className="text-accent" strokeWidth={2.5} /> Treasury Oversight
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '12px', maxWidth: '600px', lineHeight: '1.6' }}>
-                        Unified fiscal management system for tracking institutional revenue, scholarship allocations, and synchronized billing cycles.
-                    </p>
-                </div>
-                {user.role !== 'student' && (
-                    <div style={{ position: 'absolute', right: '40px', bottom: '40px', zIndex: 3 }}>
-                        <button className="btn btn-primary" onClick={() => setCreateModalOpen(true)} style={{ 
-                            borderRadius: '16px', 
-                            padding: '12px 28px',
-                            fontWeight: 800,
-                            boxShadow: 'var(--accent-glow)'
-                        }}>
-                            <Plus size={18} strokeWidth={3} /> GENERATE BILLING
-                        </button>
-                    </div>
-                )}
-                <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.05 }}>
-                    <DollarSign size={300} strokeWidth={1} />
-                </div>
-            </div>
-
             {/* Admin Stats Overview */}
             {user.role !== 'student' && stats && activeTab === 'overview' && (
                 <div className="stats-grid" style={{ marginBottom: '32px' }}>
-                    <div className="stat-card glass-morph" style={{ borderRadius: '24px' }}>
+                    <div className="stat-card" style={{ borderRadius: 'var(--radius-lg)' }}>
                         <div className="stat-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
                             <Activity size={24} />
                         </div>
                         <div className="stat-info">
-                            <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Total Potential</label>
-                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900 }}>${stats.totalFees?.toLocaleString()}</h3>
+                            <label style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Total Potential</label>
+                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700 }}>${stats.totalFees?.toLocaleString()}</h3>
                         </div>
                     </div>
-                    <div className="stat-card glass-morph" style={{ borderRadius: '24px' }}>
+                    <div className="stat-card" style={{ borderRadius: 'var(--radius-lg)' }}>
                         <div className="stat-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
                             <ShieldCheck size={24} />
                         </div>
                         <div className="stat-info">
-                            <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Actual Revenue</label>
-                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, color: 'var(--success)' }}>${stats.totalCollected?.toLocaleString()}</h3>
+                            <label style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Actual Revenue</label>
+                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--success)' }}>${stats.totalCollected?.toLocaleString()}</h3>
                         </div>
                     </div>
-                    <div className="stat-card glass-morph" style={{ borderRadius: '24px' }}>
+                    <div className="stat-card" style={{ borderRadius: 'var(--radius-lg)' }}>
                         <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
                             <AlertTriangle size={24} />
                         </div>
                         <div className="stat-info">
-                            <label style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Critical Arrears</label>
-                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 900, color: 'var(--danger)' }}>{stats.overdueCount}</h3>
+                            <label style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6, display: 'block', marginBottom: '4px' }}>Critical Arrears</label>
+                            <h3 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 700, color: 'var(--danger)' }}>{stats.overdueCount}</h3>
                         </div>
                     </div>
                 </div>
@@ -166,11 +131,11 @@ export default function Fees() {
 
             {/* Role-Based Tabs */}
             {user.role !== 'student' && (
-                <div className="tab-container glass-morph" style={{ marginBottom: '32px', padding: '6px', borderRadius: '18px', maxWidth: 'fit-content' }}>
-                    <div onClick={() => setActiveTab('overview')} className={`tab-item ${activeTab === 'overview' ? 'active' : ''}`} style={{ borderRadius: '14px', padding: '10px 24px' }}>
+                <div className="tab-container" style={{ marginBottom: '32px', padding: '6px', borderRadius: 'var(--radius-md)', maxWidth: 'fit-content' }}>
+                    <div onClick={() => setActiveTab('overview')} className={`tab-item ${activeTab === 'overview' ? 'active' : ''}`} style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px' }}>
                         <PieChart size={16} /> TRANSACTION CLOUD
                     </div>
-                    <div onClick={() => setActiveTab('overdue')} className={`tab-item ${activeTab === 'overdue' ? 'active' : ''}`} style={{ borderRadius: '14px', padding: '10px 24px' }}>
+                    <div onClick={() => setActiveTab('overdue')} className={`tab-item ${activeTab === 'overdue' ? 'active' : ''}`} style={{ borderRadius: 'var(--radius-md)', padding: '10px 24px' }}>
                         <AlertTriangle size={16} /> DEFAULTERS REGISTRY
                     </div>
                 </div>
@@ -180,21 +145,21 @@ export default function Fees() {
                 {user.role === 'student' ? (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '32px' }}>
                         {fees.map(fee => (
-                            <div key={fee.id} className="card glass-morph hover-row fade-in" style={{ padding: '32px', borderRadius: '28px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div key={fee.id} className="card hover-row fade-in" style={{ padding: '32px', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(255,255,255,0.05)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
-                                    <div style={{ background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent-light)', padding: '14px', borderRadius: '16px' }}>
+                                    <div style={{ background: 'rgba(var(--accent-rgb), 0.1)', color: 'var(--accent-light)', padding: '14px', borderRadius: 'var(--radius-md)' }}>
                                         <Receipt size={28} />
                                     </div>
                                     <div>{getStatusBadge(fee.status)}</div>
                                 </div>
-                                <h4 style={{ fontSize: '1.4rem', fontWeight: 900, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>{fee.description}</h4>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--accent-light)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '1.4rem', fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>{fee.description}</h4>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--accent-light)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '24px' }}>
                                     INVOICE REF: ACC-{fee.id}
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '20px' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: 'var(--radius-md)' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                                         <span style={{ color: 'var(--text-muted)' }}>NET PAYABLE</span>
-                                        <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '1.1rem' }}>${fee.amount.toLocaleString()}</span>
+                                        <span style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1.1rem' }}>${fee.amount.toLocaleString()}</span>
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                                         <span style={{ color: 'var(--text-muted)' }}>SETTLEMENT DEADLINE</span>
@@ -202,14 +167,14 @@ export default function Fees() {
                                     </div>
                                     <div className="divider" style={{ margin: '4px 0' }}></div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1rem' }}>
-                                        <span style={{ fontWeight: 800, color: 'var(--success)' }}>SETTLED AMOUNT</span>
-                                        <span style={{ fontWeight: 900, color: 'var(--success)' }}>${(fee.paidAmount || 0).toLocaleString()}</span>
+                                        <span style={{ fontWeight: 600, color: 'var(--success)' }}>SETTLED AMOUNT</span>
+                                        <span style={{ fontWeight: 700, color: 'var(--success)' }}>${(fee.paidAmount || 0).toLocaleString()}</span>
                                     </div>
                                 </div>
                                 {fee.status !== 'paid' && (
                                     <button 
                                         className="btn btn-primary" 
-                                        style={{ width: '100%', justifyContent: 'center', padding: '16px', borderRadius: '16px', fontWeight: 800, boxShadow: 'var(--accent-glow)' }}
+                                        style={{ width: '100%', justifyContent: 'center', padding: '16px', borderRadius: 'var(--radius-md)', fontWeight: 600, boxShadow: 'var(--shadow-md)' }}
                                         onClick={() => { setPayModalOpen(fee); setPayAmount(String(fee.amount - (fee.paidAmount || 0))); }}
                                     >
                                         <CreditCard size={20} /> AUTHORIZE PAYMENT
@@ -219,7 +184,7 @@ export default function Fees() {
                         ))}
                     </div>
                 ) : activeTab === 'overview' ? (
-                    <div className="table-wrapper glass-morph" style={{ borderRadius: '24px', overflow: 'hidden' }}>
+                    <div className="table-wrapper" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                         <table>
                             <thead>
                                 <tr>
@@ -236,12 +201,12 @@ export default function Fees() {
                                 {fees.map(f => (
                                     <tr key={f.id} className="fade-in hover-row">
                                         <td style={{ padding: '16px 24px' }}>
-                                            <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{f.student?.name}</div>
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{f.student?.name}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{f.student?.rollNo}</div>
                                         </td>
-                                        <td><span className="badge badge-outline" style={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 800 }}>{f.type}</span></td>
-                                        <td style={{ fontWeight: 900, color: 'var(--text-primary)' }}>${f.amount?.toLocaleString()}</td>
-                                        <td style={{ color: 'var(--success)', fontWeight: 800 }}>${f.paidAmount?.toLocaleString()}</td>
+                                        <td><span className="badge badge-outline" style={{ textTransform: 'uppercase', fontSize: '0.65rem', fontWeight: 600 }}>{f.type}</span></td>
+                                        <td style={{ fontWeight: 700, color: 'var(--text-primary)' }}>${f.amount?.toLocaleString()}</td>
+                                        <td style={{ color: 'var(--success)', fontWeight: 600 }}>${f.paidAmount?.toLocaleString()}</td>
                                         <td style={{ fontWeight: 600 }}>{new Date(f.dueDate).toLocaleDateString()}</td>
                                         <td>{getStatusBadge(f.status)}</td>
                                         <td style={{ textAlign: 'right', paddingRight: '24px' }}>
@@ -255,7 +220,7 @@ export default function Fees() {
                         </table>
                     </div>
                 ) : (
-                    <div className="table-wrapper glass-morph">
+                    <div className="table-wrapper">
                         <div className="toolbar" style={{ padding: '0 0 20px 0', border: 'none', background: 'transparent' }}>
                             <div className="toolbar-left">
                                 <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--danger)' }}>Payment Defaulters Registry</h3>
@@ -277,10 +242,10 @@ export default function Fees() {
                                 {defaulters.map(f => (
                                     <tr key={f.id} className="fade-in">
                                         <td>
-                                            <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{f.student?.name}</div>
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{f.student?.name}</div>
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{f.student?.rollNo}</div>
                                         </td>
-                                        <td style={{ color: 'var(--danger)', fontWeight: 800 }}>${(f.amount - f.paidAmount).toLocaleString()}</td>
+                                        <td style={{ color: 'var(--danger)', fontWeight: 600 }}>${(f.amount - f.paidAmount).toLocaleString()}</td>
                                         <td>{new Date(f.dueDate).toLocaleDateString()}</td>
                                         <td style={{ textAlign: 'right' }}>
                                             <button className="btn btn-secondary btn-sm" title="Send Official Notice">

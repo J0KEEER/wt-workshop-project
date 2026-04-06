@@ -73,54 +73,25 @@ export default function HostelManagement() {
 
     return (
         <div className="fade-in">
-            <div className="hero-card" style={{ 
-                background: 'linear-gradient(135deg, #1e1e2e 0%, #111119 100%)',
-                padding: '40px',
-                borderRadius: '32px',
-                marginBottom: '32px',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                        <div className="status-dot status-online" style={{ width: '12px', height: '12px' }}></div>
-                        <span style={{ color: 'var(--accent-light)', fontWeight: 800, letterSpacing: '2px', fontSize: '0.75rem' }}>RESIDENTIAL OPERATIONS</span>
-                    </div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <Building2 size={40} className="text-accent" strokeWidth={2.5} /> Campus Residency
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '12px', maxWidth: '600px', lineHeight: '1.6' }}>
-                        Premium residential management portal coordinating student housing allocations, block logistics, and interactive maintenance registries.
-                    </p>
-                </div>
-                <div style={{ position: 'absolute', right: '-20px', top: '-20px', opacity: 0.05 }}>
-                    <MapPin size={300} strokeWidth={1} />
-                </div>
-            </div>
-
             {myAllocation && (
-                <div className="card glass-morph fade-in shadow-accent" style={{ 
-                    marginBottom: '40px', 
-                    borderRadius: '28px',
-                    border: '1px solid rgba(16, 185, 129, 0.2)', 
-                    background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(10, 10, 15, 0.4) 100%)'
+                <div className="card fade-in" style={{
+                    marginBottom: '32px',
+                    border: '1px solid var(--success)',
                 }}>
-                    <div className="card-body" style={{ display: 'flex', alignItems: 'center', gap: '32px', padding: '32px' }}>
-                        <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '24px', borderRadius: '20px', color: '#10b981' }}>
-                            <ShieldCheck size={40} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '16px', borderRadius: 'var(--radius-sm)', color: '#10b981' }}>
+                            <ShieldCheck size={32} />
                         </div>
                         <div style={{ flex: 1 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.5px' }}>Institutional Enrollment Confirmed</h3>
-                                <div className="badge badge-success" style={{ padding: '8px 16px', fontSize: '0.7rem', fontWeight: 800, borderRadius: '12px', letterSpacing: '1px' }}>RESIDENT ACTIVE</div>
+                                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Institutional Enrollment Confirmed</h3>
+                                <div className="badge badge-success">RESIDENT ACTIVE</div>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '24px', color: 'var(--text-secondary)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><Building2 size={18} className="text-accent" /> <strong>{myAllocation.room?.hostel?.name}</strong></div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><MapPin size={18} className="text-info" /> BLOCK {myAllocation.room?.hostel?.block}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><Key size={18} className="text-warning" /> UNIT {myAllocation.room?.roomNumber}</div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><BedDouble size={18} className="text-accent" /> {myAllocation.room?.type?.toUpperCase()}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px', color: 'var(--text-secondary)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Building2 size={16} /> <strong>{myAllocation.room?.hostel?.name}</strong></div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><MapPin size={16} /> BLOCK {myAllocation.room?.hostel?.block}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><Key size={16} /> UNIT {myAllocation.room?.roomNumber}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}><BedDouble size={16} /> {myAllocation.room?.type?.toUpperCase()}</div>
                             </div>
                         </div>
                     </div>
@@ -129,22 +100,22 @@ export default function HostelManagement() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 {hostels.map(hostel => (
-                    <div key={hostel.id} className="card glass-morph fade-in" style={{ overflow: 'hidden', borderRadius: '28px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div key={hostel.id} className="card fade-in" style={{ overflow: 'hidden', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
                         <div className="card-header" style={{ 
                             display: 'flex', 
                             justifyContent: 'space-between', 
                             alignItems: 'center', 
                             padding: '32px', 
-                            background: 'rgba(255,255,255,0.03)', 
-                            borderBottom: '1px solid rgba(255,255,255,0.05)' 
+                            background: 'var(--hover-bg)', 
+                            borderBottom: '1px solid var(--border-color)' 
                         }}>
                             <div>
-                                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.5px' }}>{hostel.name} <span style={{ opacity: 0.5, fontWeight: 400 }}>|</span> BLOCK {hostel.block}</h3>
+                                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 700, letterSpacing: '-0.5px' }}>{hostel.name} <span style={{ opacity: 0.5, fontWeight: 400 }}>|</span> BLOCK {hostel.block}</h3>
                                 <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                                     <span style={{ 
                                         textTransform: 'uppercase', 
                                         letterSpacing: '1.5px', 
-                                        fontWeight: 800, 
+                                        fontWeight: 600, 
                                         fontSize: '0.7rem', 
                                         color: 'var(--accent-light)' 
                                     }}>
@@ -160,7 +131,7 @@ export default function HostelManagement() {
                                     textTransform: 'uppercase', 
                                     letterSpacing: '1.5px', 
                                     fontSize: '0.7rem', 
-                                    fontWeight: 800,
+                                    fontWeight: 600,
                                     color: hostel.status === 'active' ? 'var(--success)' : 'var(--warning)'
                                 }}>
                                     {hostel.status}
@@ -174,17 +145,17 @@ export default function HostelManagement() {
                                 gap: '32px' 
                             }}>
                                 {hostel.rooms?.map(room => (
-                                    <div key={room.id} className="hover-row glass-morph fade-in" style={{ 
+                                    <div key={room.id} className="hover-row fade-in" style={{ 
                                         padding: '24px', 
-                                        borderRadius: '24px', 
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        background: 'rgba(255,255,255,0.01)',
+                                        borderRadius: 'var(--radius-lg)', 
+                                        border: '1px solid var(--border-color)',
+                                        background: 'var(--bg-card)',
                                         position: 'relative'
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
                                             <div>
-                                                <div style={{ fontWeight: 900, fontSize: '1.4rem', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>UNIT {room.roomNumber}</div>
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 800, opacity: 0.6, marginTop: '2px' }}>FLOOR {room.floor}</div>
+                                                <div style={{ fontWeight: 700, fontSize: '1.4rem', color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>UNIT {room.roomNumber}</div>
+                                                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600, opacity: 0.6, marginTop: '2px' }}>FLOOR {room.floor}</div>
                                             </div>
                                             <span className={`badge ${room.status === 'available' ? 'badge-info' : room.status === 'full' ? 'badge-danger' : 'badge-warning'}`} style={{ 
                                                 fontSize: '0.65rem', 
@@ -203,15 +174,15 @@ export default function HostelManagement() {
                                                 <span style={{ fontWeight: 700 }}>{room.type}</span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '12px' }}>
-                                                <div style={{ flex: 1, height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                                                <div style={{ flex: 1, height: '6px', background: 'var(--hover-bg-strong)', borderRadius: '10px', overflow: 'hidden' }}>
                                                     <div style={{ 
                                                         height: '100%', 
                                                         width: `${((room.allocations?.length || 0) / room.capacity) * 100}%`, 
                                                         background: 'var(--accent)',
-                                                        boxShadow: 'var(--accent-glow)'
+                                                        boxShadow: 'var(--shadow-md)'
                                                     }}></div>
                                                 </div>
-                                                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                                                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)' }}>
                                                     {room.allocations?.length || 0} / {room.capacity}
                                                 </span>
                                             </div>
@@ -219,18 +190,18 @@ export default function HostelManagement() {
 
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             {room.allocations?.map(alloc => (
-                                                <div key={alloc.id} className="glass-morph" style={{ 
+                                                <div key={alloc.id} className="" style={{ 
                                                     display: 'flex', 
                                                     justifyContent: 'space-between', 
                                                     alignItems: 'center', 
-                                                    background: 'rgba(255,255,255,0.03)', 
+                                                    background: 'var(--bg-surface)', 
                                                     padding: '12px 16px', 
-                                                    borderRadius: '14px', 
+                                                    borderRadius: 'var(--radius-md)', 
                                                     fontSize: '0.85rem',
-                                                    border: '1px solid rgba(255,255,255,0.03)'
+                                                    border: '1px solid var(--border-color-subtle)'
                                                 }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent)' }}></div>
+                                                        <div style={{ width: '8px', height: '8px', borderRadius: 'var(--radius-md)', background: 'var(--accent)' }}></div>
                                                         <span style={{ fontWeight: 700 }}>{alloc.student?.user?.name}</span>
                                                     </div>
                                                     {user.role === 'admin' && (
@@ -244,8 +215,8 @@ export default function HostelManagement() {
                                             {user.role === 'admin' && room.status === 'available' && (
                                                 <button 
                                                     onClick={() => { setSelectedRoom(room); setShowAllocateModal(true); }}
-                                                    className="btn btn-outline btn-sm shadow-accent" 
-                                                    style={{ width: '100%', marginTop: '8px', justifyContent: 'center', padding: '10px', borderRadius: '12px', fontWeight: 700 }}
+                                                    className="btn btn-outline btn-sm" 
+                                                    style={{ width: '100%', marginTop: '8px', justifyContent: 'center', padding: '10px', borderRadius: 'var(--radius-sm)', fontWeight: 700 }}
                                                 >
                                                     <UserPlus size={16} /> ALLOCATE UNIT
                                                 </button>

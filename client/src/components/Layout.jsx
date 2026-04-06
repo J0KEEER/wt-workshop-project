@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Users, BookOpen, GraduationCap, ClipboardCheck,
     FileText, DollarSign, Library, Settings, LogOut, Menu, X, Sun, Moon, 
     Building2, MessageSquare, UserCheck, Calendar, Bell, Activity,
-    Home, Navigation, Bus, Package
+    Home, Navigation, Bus, Package, Clock
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
@@ -62,7 +62,11 @@ export default function Layout() {
     }, [theme]);
 
     useEffect(() => {
-        const socket = io(window.location.origin, { transports: ['websocket'] });
+        const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
+            transports: ['websocket'],
+            reconnectionAttempts: 5,
+            timeout: 3000,
+        });
         socketRef.current = socket;
 
         socket.on('dashboard:update', (data) => {

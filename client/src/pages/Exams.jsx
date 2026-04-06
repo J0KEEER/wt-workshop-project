@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Plus, Edit2, Trash2, Search, X, FileText, AlertTriangle, BarChart2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, FileText, AlertTriangle, BarChart2, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { ModalOverlay, ModalHeader, ModalBody, ModalFooter } from '../components/ui/Modal';
@@ -126,23 +126,9 @@ export default function Exams() {
 
     return (
         <div className="fade-in">
-            <div className="card hero-card" style={{ marginBottom: '24px' }}>
-                <div className="card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ margin: 0 }}>Examination Portal</h2>
-                            <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>Schedule exams, manage results, and track student performance analytics.</p>
-                        </div>
-                        <button className="btn btn-secondary" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', borderColor: 'rgba(255,255,255,0.3)' }} onClick={openCreate}>
-                            <Plus size={16} /> Schedule Exam
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <div className="toolbar">
                 <div className="toolbar-left">
-                    <div className="search-box glass-morph">
+                    <div className="search-box">
                         <Search size={16} />
                         <input className="form-control" placeholder="Search exams by title or course..." aria-label="Search exams" />
                     </div>
@@ -152,7 +138,7 @@ export default function Exams() {
                 </div>
             </div>
 
-            <div className="table-wrapper glass-morph">
+            <div className="table-wrapper">
                 <table>
                     <thead>
                         <tr>
@@ -285,7 +271,7 @@ export default function Exams() {
             <ModalOverlay isOpen={!!gradingOpen} onClose={() => setGradingOpen(null)}>
                 <ModalHeader title={`Student Grading: ${gradingOpen?.title}`} onClose={() => setGradingOpen(null)} />
                 <ModalBody>
-                    <div className="glass-morph" style={{ marginBottom: '24px', padding: '16px', borderRadius: 'var(--radius-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="" style={{ marginBottom: '24px', padding: '16px', borderRadius: 'var(--radius-lg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Subject</div>
                             <div style={{ fontWeight: 700 }}>{gradingOpen?.course?.title} ({gradingOpen?.course?.code})</div>

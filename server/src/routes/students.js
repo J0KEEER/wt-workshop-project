@@ -56,10 +56,10 @@ router.get('/:id', authenticate, async (req, res) => {
 router.post('/', authenticate, authorize('admin', 'staff'), async (req, res) => {
     try {
         const student = await Student.create(req.body);
-        console.log(`[${new Date().toISOString()}] 👤 Student Created: ${student.name} (Roll: ${student.rollNo}) by User ID ${req.user.id}`);
+        console.log(`[${new Date().toISOString()}] Student Created: ${student.name} (Roll: ${student.rollNo})`);
         res.status(201).json(student);
     } catch (err) {
-        console.error(`[${new Date().toISOString()}] ❌ Student Creation Failed:`, err.message);
+        console.error(`[${new Date().toISOString()}] Student Creation Failed:`, err.message);
         res.status(400).json({ error: err.message });
     }
 });
@@ -73,12 +73,11 @@ router.put('/:id', authenticate, authorize('admin', 'staff'), async (req, res) =
         const oldData = { ...student.toJSON() };
         await student.update(req.body);
         
-        console.log(`[${new Date().toISOString()}] 📝 Student Updated: ${student.name} (ID: ${student.id}) by User ID ${req.user.id}`);
-        console.log(`   Changes:`, req.body);
-        
+        console.log(`[${new Date().toISOString()}] Student Updated: ${student.name} (ID: ${student.id})`);
+
         res.json(student);
     } catch (err) {
-        console.error(`[${new Date().toISOString()}] ❌ Student Update Failed (ID: ${req.params.id}):`, err.message);
+        console.error(`[${new Date().toISOString()}] Student Update Failed (ID: ${req.params.id}):`, err.message);
         res.status(400).json({ error: err.message });
     }
 });
@@ -93,11 +92,11 @@ router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
         const studentRoll = student.rollNo;
         
         await student.destroy();
-        console.log(`[${new Date().toISOString()}] 🗑️ Student Deleted: ${studentName} (Roll: ${studentRoll}) by User ID ${req.user.id}`);
+        console.log(`[${new Date().toISOString()}] Student Deleted: ${studentName} (Roll: ${studentRoll})`);
         
         res.json({ message: 'Student deleted' });
     } catch (err) {
-        console.error(`[${new Date().toISOString()}] ❌ Student Deletion Failed (ID: ${req.params.id}):`, err.message);
+        console.error(`[${new Date().toISOString()}] Student Deletion Failed (ID: ${req.params.id}):`, err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -125,7 +124,7 @@ router.post('/:id/enroll', authenticate, authorize('admin', 'staff'), async (req
             enrollmentDate: new Date().toISOString().split('T')[0],
         });
         
-        console.log(`[${new Date().toISOString()}] 📚 Student Enrolled: ${student.name} (ID: ${student.id}) in Subject ID ${courseId} by User ID ${req.user.id}`);
+        console.log(`[${new Date().toISOString()}] Student Enrolled: ${student.name} (ID: ${student.id}) in Subject ID ${courseId}`);
         
         res.status(201).json(enrollment);
     } catch (err) {

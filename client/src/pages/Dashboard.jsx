@@ -42,8 +42,10 @@ export default function Dashboard() {
         fetchStats();
 
         // Connect to the Socket.IO server (same origin as API)
-        const socket = io(window.location.origin, {
+        const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
             transports: ['websocket', 'polling'],
+            reconnectionAttempts: 5,
+            timeout: 3000,
         });
         socketRef.current = socket;
 
@@ -97,26 +99,13 @@ export default function Dashboard() {
 
     return (
         <div className="fade-in">
-            {/* Header section */}
-            <div className="card hero-card" style={{ marginBottom: '32px' }}>
-                <div className="card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ margin: 0, fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-1px' }}>Greetings, {user.name.split(' ')[0]}</h2>
-                            <p style={{ margin: '12px 0 0 0', fontSize: '1.1rem', opacity: 0.9 }}>Today is {todayDateStr}. Here is your institutional synchronization status.</p>
-                        </div>
-                        <Activity size={64} style={{ opacity: 0.15, transform: 'rotate(-10deg)' }} />
-                    </div>
-                </div>
-            </div>
-
             {/* Current Class Hero (Faculty Only) */}
             {user.role === 'faculty' && todaySchedule?.some(item => {
                 const now = new Date();
                 const cur = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
                 return cur >= item.startTime && cur <= item.endTime;
             }) && (
-                <div className="card glass-morph pulse-card" style={{ 
+                <div className="card pulse-card" style={{ 
                     marginBottom: '24px', 
                     borderLeft: '4px solid var(--success)', 
                     padding: '24px',
@@ -160,9 +149,9 @@ export default function Dashboard() {
 
             {/* Personalized Alerts */}
             {upcomingExams?.length > 0 && (
-                <div className="card" style={{ marginBottom: '24px', border: '1px solid var(--warning)', background: 'var(--hover-bg-accent)' }}>
+                <div className="card" style={{ marginBottom: '24px', border: '1px solid var(--warning)', background: 'var(--warning-bg)' }}>
                     <div className="card-body" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px' }}>
-                        <div style={{ background: 'var(--warning)', padding: '8px', borderRadius: '8px', color: 'black' }}>
+                        <div style={{ background: 'var(--warning)', padding: '8px', borderRadius: '8px', color: 'white' }}>
                             <AlertCircle size={20} />
                         </div>
                         <div>
@@ -177,29 +166,27 @@ export default function Dashboard() {
             )}
 
             {/* Live indicator */}
-            <div className="glass-morph" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginBottom: '24px', padding: '10px 16px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div className="fade-in" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '24px', padding: '6px 12px', borderRadius: 'var(--radius-full)', fontSize: '0.75rem', fontWeight: 500, border: '1px solid var(--border-color)', background: 'var(--bg-surface)' }}>
                 <span style={{
-                    width: '10px', height: '10px', borderRadius: '50%',
+                    width: '8px', height: '8px', borderRadius: 'var(--radius-md)',
                     background: connected ? 'var(--success)' : '#6b7280',
-                    boxShadow: connected ? '0 0 12px var(--success)' : 'none',
-                    animation: connected ? 'pulse 2s infinite' : 'none',
                     display: 'inline-block',
                 }} />
-                <span style={{ color: connected ? 'var(--text-primary)' : 'var(--text-muted)' }}>
-                    {connected ? 'REAL-TIME DATA ENGINE ACTIVE' : 'ESTABLISHING SECURE CONNECTION…'}
+                <span style={{ color: connected ? 'var(--text-secondary)' : 'var(--text-muted)' }}>
+                    {connected ? 'Live connection' : 'Disconnected'}
                 </span>
             </div>
 
             {/* Stat cards */}
             <div className="stat-grid" style={{ marginBottom: '32px', gap: '24px' }}>
                 {statCards.map((card, i) => (
-                    <div className="stat-card glass-morph hover-card" key={i} style={{ padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div className={`stat-icon ${card.color}`} style={{ width: '56px', height: '56px', borderRadius: '16px', marginBottom: '0' }}>
+                    <div className="stat-card" key={i} style={{ padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
+                        <div className={`stat-icon ${card.color}`} style={{ width: '56px', height: '56px', borderRadius: 'var(--radius-md)', marginBottom: '0' }}>
                             <card.icon size={28} />
                         </div>
                         <div className="stat-info" style={{ marginLeft: '16px' }}>
                             <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', opacity: 0.7 }}>{card.label}</h4>
-                            <div className="stat-value" style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.5px' }}>{card.value}</div>
+                            <div className="stat-value" style={{ fontSize: '1.8rem', fontWeight: 600, letterSpacing: '-0.5px' }}>{card.value}</div>
                             {card.sub && <div className="stat-sub" style={{ fontSize: '0.75rem', marginTop: '6px', opacity: 0.6 }}>{card.sub}</div>}
                         </div>
                     </div>
@@ -209,9 +196,9 @@ export default function Dashboard() {
             <div className="charts-grid" style={{ marginBottom: '24px' }}>
                 {/* Today's Schedule (Personalized) */}
                 {(user.role === 'student' || user.role === 'faculty') && (
-                    <div className="card glass-morph" style={{ borderRadius: '24px' }}>
+                    <div className="card" style={{ borderRadius: 'var(--radius-lg)' }}>
                         <div className="card-header" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <h3 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <Clock size={20} className="text-accent" /> ACADEMIC TIMELINE
                             </h3>
                             <span className="badge badge-outline">{todaySchedule?.length || 0} SESSIONS</span>
@@ -225,13 +212,13 @@ export default function Dashboard() {
                                         const isLive = cur >= item.startTime && cur <= item.endTime;
                                         
                                         return (
-                                            <div key={i} className={`hover-card ${isLive ? 'glass-morph' : ''}`} style={{ 
+                                            <div key={i} className={`${isLive ? '' : ''}`} style={{ 
                                                 display: 'flex', 
                                                 gap: '16px', 
                                                 padding: '16px',
-                                                borderRadius: '20px',
-                                                border: isLive ? '1.5px solid var(--success-bg)' : '1px solid rgba(255,255,255,0.05)',
-                                                background: isLive ? 'rgba(34, 197, 94, 0.05)' : 'rgba(255,255,255,0.01)',
+                                                borderRadius: 'var(--radius-md)',
+                                                border: isLive ? '1.5px solid var(--success)' : '1px solid var(--border-color)',
+                                                background: isLive ? 'var(--success-bg)' : 'var(--bg-card)',
                                                 position: 'relative',
                                                 overflow: 'hidden'
                                             }}>
@@ -239,8 +226,8 @@ export default function Dashboard() {
                                                 <div style={{ 
                                                     width: '48px', 
                                                     height: '48px', 
-                                                    borderRadius: '14px', 
-                                                    background: isLive ? 'var(--success-bg)' : 'rgba(255,255,255,0.03)', 
+                                                    borderRadius: 'var(--radius-md)', 
+                                                    background: isLive ? 'var(--success-bg)' : 'var(--hover-bg-strong)', 
                                                     color: isLive ? 'var(--success)' : 'var(--text-muted)',
                                                     display: 'flex',
                                                     alignItems: 'center',
@@ -251,7 +238,7 @@ export default function Dashboard() {
                                                 </div>
                                                 <div style={{ flex: 1 }}>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                                                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
                                                             {item.course?.title}
                                                             {isLive && <span className="badge badge-success pulse" style={{ marginLeft: 12, fontSize: '0.65rem' }}>LIVE NOW</span>}
                                                         </div>
@@ -280,9 +267,9 @@ export default function Dashboard() {
 
                 {/* Admin-only Department Chart */}
                 {user.role === 'admin' && (
-                    <div className="card glass-morph" style={{ borderRadius: '24px' }}>
+                    <div className="card" style={{ borderRadius: 'var(--radius-lg)' }}>
                         <div className="card-header" style={{ padding: '24px' }}>
-                            <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <h3 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <TrendingUp size={20} className="text-info" /> DEPARTMENTAL REACH
                             </h3>
                         </div>
@@ -290,7 +277,7 @@ export default function Dashboard() {
                             {deptData.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={280}>
                                     <BarChart data={deptData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                                         <XAxis 
                                             dataKey="name" 
                                             stroke="var(--text-muted)" 
@@ -309,14 +296,14 @@ export default function Dashboard() {
                                         <Tooltip
                                             contentStyle={{ 
                                                 background: 'var(--bg-card)', 
-                                                border: '1px solid rgba(255,255,255,0.1)', 
-                                                borderRadius: '16px', 
+                                                border: '1px solid var(--border-color-strong)', 
+                                                borderRadius: 'var(--radius-md)', 
                                                 boxShadow: 'var(--shadow-lg)',
                                                 backdropFilter: 'blur(10px)',
                                                 color: 'var(--text-primary)' 
                                             }}
                                             labelStyle={{ fontWeight: 700, marginBottom: 4 }}
-                                            cursor={{ fill: 'rgba(255,255,255,0.05)', opacity: 0.4 }}
+                                            cursor={{ fill: 'var(--hover-bg)', opacity: 0.4 }}
                                         />
                                         <Legend 
                                             verticalAlign="top" 
@@ -347,7 +334,7 @@ export default function Dashboard() {
                     </div>
                 )}
 
-                <div className="card hover-card glass">
+                <div className="card">
                     <div className="card-header">
                         <h3><Heart size={18} style={{ marginRight: 8, verticalAlign: 'middle' }} />Course Sentiment</h3>
                     </div>
@@ -399,9 +386,9 @@ export default function Dashboard() {
                 </div>
 
                 {/* Upcoming Events Widget */}
-                <div className="card glass-morph" style={{ borderRadius: '24px' }}>
+                <div className="card" style={{ borderRadius: 'var(--radius-lg)' }}>
                     <div className="card-header" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <h3 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <Calendar size={20} className="text-warning" /> CAMPUS CHRONICLES
                         </h3>
                         <a href="/events" className="badge badge-outline" style={{ textDecoration: 'none' }}>VIEW ALL</a>
@@ -410,19 +397,19 @@ export default function Dashboard() {
                         {upcomingEvents?.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 {upcomingEvents.map((event, i) => (
-                                    <div key={i} className="hover-card" style={{ 
+                                    <div key={i} className="" style={{ 
                                         display: 'flex', 
                                         gap: '16px', 
                                         padding: '16px', 
-                                        borderRadius: '20px',
+                                        borderRadius: 'var(--radius-md)',
                                         border: '1px solid rgba(255,255,255,0.05)',
                                         background: event.isHoliday ? 'rgba(239, 68, 68, 0.05)' : 'rgba(255,255,255,0.01)',
                                     }}>
                                         <div style={{ 
                                             width: '48px', 
                                             height: '48px', 
-                                            borderRadius: '14px', 
-                                            background: event.isHoliday ? 'var(--danger-bg)' : 'var(--accent-glow)', 
+                                            borderRadius: 'var(--radius-md)', 
+                                            background: event.isHoliday ? 'var(--danger-bg)' : 'var(--shadow-md)', 
                                             color: event.isHoliday ? 'var(--danger)' : 'var(--accent-light)',
                                             display: 'flex',
                                             flexDirection: 'column',
@@ -430,12 +417,12 @@ export default function Dashboard() {
                                             justifyContent: 'center',
                                             flexShrink: 0
                                         }}>
-                                            <span style={{ fontWeight: 800, fontSize: '1rem' }}>{new Date(event.date).getDate()}</span>
+                                            <span style={{ fontWeight: 600, fontSize: '1rem' }}>{new Date(event.date).getDate()}</span>
                                             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 600 }}>{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
                                         </div>
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{event.title}</div>
+                                                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{event.title}</div>
                                                 <span className={`badge ${event.isHoliday ? 'badge-danger' : 'badge-outline'}`} style={{ fontSize: '0.65rem' }}>
                                                     {event.isHoliday ? 'HOLIDAY' : (event.type?.toUpperCase() || 'EVENT')}
                                                 </span>
@@ -456,13 +443,13 @@ export default function Dashboard() {
 
             {/* Upcoming Exams (Role Specific) */}
             {(user.role === 'student' || user.role === 'faculty') && upcomingExams?.length > 0 && (
-                <div className="card glass-morph" style={{ marginBottom: '32px', borderRadius: '24px', overflow: 'hidden' }}>
+                <div className="card" style={{ marginBottom: '32px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                     <div className="card-header" style={{ padding: '24px' }}>
-                        <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <h3 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <AlertCircle size={20} className="text-danger" /> CRITICAL EXAM SCHEDULE
                         </h3>
                     </div>
-                    <div className="table-wrapper glass-morph" style={{ border: 'none' }}>
+                    <div className="table-wrapper" style={{ border: 'none' }}>
                         <table>
                             <thead>
                                 <tr>
@@ -475,11 +462,11 @@ export default function Dashboard() {
                                 {upcomingExams.map((exam, i) => (
                                     <tr key={i} className="fade-in">
                                         <td style={{ padding: '16px 20px' }}>
-                                            <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{exam.course?.title}</div>
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{exam.course?.title}</div>
                                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{exam.course?.code}</div>
                                         </td>
                                         <td style={{ fontWeight: 600 }}>{exam.date}</td>
-                                        <td><span className="badge badge-info" style={{ fontWeight: 800 }}>{exam.maxMarks}</span></td>
+                                        <td><span className="badge badge-info" style={{ fontWeight: 600 }}>{exam.maxMarks}</span></td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -490,12 +477,12 @@ export default function Dashboard() {
 
             {/* Recent Enrollments (Admin Only) */}
             {user.role === 'admin' && (
-                <div className="card glass-morph" style={{ borderRadius: '24px', overflow: 'hidden' }}>
+                <div className="card" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                     <div className="card-header" style={{ padding: '24px' }}>
-                        <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>RECENT INSTITUTIONAL ENROLLMENTS</h3>
+                        <h3 style={{ margin: 0, fontWeight: 600, fontSize: '1.1rem' }}>RECENT INSTITUTIONAL ENROLLMENTS</h3>
                     </div>
                     {recentEnrollments.length > 0 ? (
-                        <div className="table-wrapper glass-morph" style={{ border: 'none' }}>
+                        <div className="table-wrapper" style={{ border: 'none' }}>
                             <table>
                                 <thead>
                                     <tr>
@@ -508,8 +495,8 @@ export default function Dashboard() {
                                 <tbody>
                                     {recentEnrollments.map((e, i) => (
                                         <tr key={i} className="fade-in">
-                                            <td style={{ padding: '16px 20px', fontWeight: 800, color: 'var(--text-primary)' }}>{e.student?.name}</td>
-                                            <td><code style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px' }}>{e.student?.rollNo}</code></td>
+                                            <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--text-primary)' }}>{e.student?.name}</td>
+                                            <td><code style={{ background: 'var(--hover-bg-strong)', padding: '4px 8px', borderRadius: '6px' }}>{e.student?.rollNo}</code></td>
                                             <td>
                                                 <div style={{ fontWeight: 600 }}>{e.course?.title}</div>
                                                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{e.course?.code}</div>

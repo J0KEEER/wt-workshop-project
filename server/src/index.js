@@ -118,7 +118,6 @@ app.use('/api/performance', performanceRoutes);
 app.use('/api/hostels', hostelRoutes);
 app.use('/api/transport', transportRoutes);
 app.use('/api/inventory', inventoryRoutes);
-app.use('/api/inventory', inventoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

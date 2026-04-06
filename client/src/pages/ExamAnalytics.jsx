@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
 } from 'recharts';
 import { 
   Trophy, TrendingDown, Users, Target, CheckCircle, 
-  AlertCircle, ArrowLeft, BarChart2 
+  AlertCircle, ArrowLeft, BarChart2, BookOpen
 } from 'lucide-react';
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#6366f1', '#ec4899'];
@@ -26,8 +26,8 @@ const ExamAnalytics = () => {
     const fetchAnalytics = async () => {
         try {
             const [analyticsRes, examRes] = await Promise.all([
-                axios.get(`http://localhost:5001/api/exams/${id}/analytics`),
-                axios.get(`http://localhost:5001/api/exams/${id}`)
+                api.get(`/exams/${id}/analytics`),
+                api.get(`/exams/${id}`)
             ]);
             setData(analyticsRes.data);
             setExam(examRes.data);
@@ -39,76 +39,65 @@ const ExamAnalytics = () => {
     };
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="p-xl text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-primary mx-auto"></div>
+            <p className="mt-4 text-text-muted">Analyzing results...</p>
         </div>
     );
 
-    if (!data) return <div className="text-center p-8">No analytics available for this exam.</div>;
+    if (!data) return (
+        <div className="empty-state">
+            <AlertCircle size={48} className="opacity-30" />
+            <h3>No Analytics Data</h3>
+            <p>We couldn't find any performance data for this assessment yet.</p>
+            <button onClick={() => navigate(-1)} className="btn btn-primary mt-6">
+                Go Back
+            </button>
+        </div>
+    );
 
     const { summary, distribution, topPerformers, atRisk } = data;
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <button 
-                        onClick={() => navigate(-1)}
-                        className="flex items-center text-sm text-gray-500 hover:text-gray-700 mb-2 transition-colors"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Exams
-                    </button>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                        <BarChart2 className="w-8 h-8 mr-3 text-primary" />
-                        {exam?.title} Performance Analytics
-                    </h1>
-                    <p className="text-gray-500 mt-1">
-                        Course: {exam?.course?.title} ({exam?.course?.code}) • Total Marks: {exam?.totalMarks}
-                    </p>
-                </div>
-            </div>
-
+        <div className="page-container fade-in">
             {/* Summary Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
-                    { label: 'Average Score', value: `${summary.averageMarks}`, icon: Users, color: 'blue' },
-                    { label: 'Pass Percentage', value: `${summary.passPercentage}%`, icon: CheckCircle, color: 'emerald' },
-                    { label: 'Highest Marks', value: summary.highestScore, icon: Trophy, color: 'yellow' },
-                    { label: 'Lowest Marks', value: summary.lowestScore, icon: TrendingDown, color: 'red' },
+                    { label: 'Average Score', value: `${summary.averageMarks}`, icon: Users, color: 'var(--accent-light)' },
+                    { label: 'Pass Ratio', value: `${summary.passPercentage}%`, icon: CheckCircle, color: 'var(--success)' },
+                    { label: 'Highest Marks', value: summary.highestScore, icon: Trophy, color: 'var(--warning)' },
+                    { label: 'Lowest Marks', value: summary.lowestScore, icon: TrendingDown, color: 'var(--danger)' },
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-500">{stat.label}</p>
-                                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                            </div>
-                            <div className={`p-3 rounded-xl bg-${stat.color}-50 text-${stat.color}-600`}>
-                                <stat.icon className="w-6 h-6" />
-                            </div>
+                    <div key={i} className="p-6 flex items-center justify-between">
+                        <div>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{stat.label}</p>
+                            <p style={{ fontSize: '1.75rem', fontWeight: 600, margin: '4px 0 0 0' }}>{stat.value}</p>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: 'var(--radius-sm)', color: stat.color }}>
+                            <stat.icon size={24} />
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 {/* Grade Distribution Chart */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                        <Target className="w-5 h-5 mr-2 text-primary" />
+                <div className="p-8">
+                    <h3 className="mb-6 flex items-center gap-3" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                        <Target size={20} className="var(--accent-light)" />
                         Grade Distribution
                     </h3>
-                    <div className="h-[300px] w-full">
+                    <div className="h-[300px] ">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={distribution}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280' }} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted)', fontSize: 12 }} />
                                 <Tooltip 
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                    cursor={{ fill: '#f9fafb' }}
+                                    contentStyle={{ background: 'var(--bg-dark)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-sm)' }}
+                                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                                 />
-                                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                                <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                                     {distribution.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                     ))}
@@ -119,26 +108,26 @@ const ExamAnalytics = () => {
                 </div>
 
                 {/* Top Performers */}
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                        <Trophy className="w-5 h-5 mr-2 text-yellow-500" />
+                <div className="p-8">
+                    <h3 className="mb-6 flex items-center gap-3" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                        <Trophy size={20} className="text-warning" />
                         Top Performers
                     </h3>
                     <div className="space-y-4">
                         {topPerformers.map((student, i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-transparent hover:border-gray-200 transition-all">
-                                <div className="flex items-center">
-                                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mr-4">
+                            <div key={i} className="flex items-center justify-between p-4 rounded-md  border   ">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-md var(--bg-card) var(--accent-light) flex items-center justify-center font-bold">
                                         {i + 1}
                                     </div>
                                     <div>
-                                        <p className="font-semibold text-gray-900">{student.name}</p>
-                                        <p className="text-xs text-gray-500">Roll No: {student.rollNo}</p>
+                                        <p style={{ fontWeight: 600, margin: 0 }}>{student.name}</p>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Roll No: {student.rollNo}</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-lg font-bold text-primary">{student.marks}</p>
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    <p style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--accent-light)', margin: 0 }}>{student.marks}</p>
+                                    <span style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', background: 'rgba(16,185,129,0.1)', color: 'var(--success)', padding: '2px 8px', borderRadius: '4px' }}>
                                         Grade {student.grade}
                                     </span>
                                 </div>
@@ -149,20 +138,20 @@ const ExamAnalytics = () => {
             </div>
 
             {atRisk.length > 0 && (
-                <div className="bg-white rounded-2xl p-8 shadow-sm border border-red-100 bg-red-50/10">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center">
-                        <AlertCircle className="w-5 h-5 mr-2 text-red-500" />
-                        Students Needing Attention ({atRisk.length})
+                <div style={{ border: '1px solid rgba(239, 68, 68, 0.2)', background: 'var(--danger-bg)', padding: '32px', borderRadius: 'var(--radius-lg)' }}>
+                    <h3 className="mb-6 flex items-center gap-3 text-danger" style={{ fontSize: '1.25rem', fontWeight: 600 }}>
+                        <AlertCircle size={20} />
+                        Performance Alerts ({atRisk.length})
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {atRisk.map((student, i) => (
-                            <div key={i} className="flex items-center p-3 rounded-xl bg-white shadow-sm border border-red-100">
-                                <div className="p-2 rounded-lg bg-red-50 text-red-600 mr-3">
-                                    <TrendingDown className="w-5 h-5" />
+                            <div key={i} className="flex items-center p-4 rounded-md  border border-red-500/10">
+                                <div className="p-2 rounded-lg bg-red-500/10 text-danger mr-3">
+                                    <TrendingDown size={20} />
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-gray-900">{student.name}</p>
-                                    <p className="text-xs text-gray-500">Grade: {student.grade}</p>
+                                    <p style={{ fontWeight: 600, margin: 0 }}>{student.name}</p>
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>Low Grade: {student.grade}</p>
                                 </div>
                             </div>
                         ))}

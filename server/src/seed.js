@@ -1,14 +1,20 @@
 import { initDB } from './db.js';
 import { User, Student, Faculty, Course, Enrollment, Attendance, Exam, ExamResult, Fee, Book, BookLoan } from './models/index.js';
 
+// Seed passwords from environment or use secure defaults
+const DEFAULT_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || 'ChangeMe_Admin1!';
+const DEFAULT_LIBRARIAN_PASSWORD = process.env.SEED_LIBRARIAN_PASSWORD || 'ChangeMe_Lib1!';
+const DEFAULT_FACULTY_PASSWORD = process.env.SEED_FACULTY_PASSWORD || 'ChangeMe_Fac1!';
+const DEFAULT_STUDENT_PASSWORD = process.env.SEED_STUDENT_PASSWORD || 'ChangeMe_Stu1!';
+
 async function seed() {
     console.log('🌱 Seeding database...');
     // force: true drops tables and recreates them entirely, removing all previous data as requested
     await initDB(true);
 
     // --- Users ---
-    const admin = await User.create({ username: 'admin', email: 'admin@college.edu', passwordHash: 'admin123', firstName: 'Admin', lastName: 'User', role: 'admin' });
-    const lib = await User.create({ username: 'librarian', email: 'librarian@college.edu', passwordHash: 'lib123', firstName: 'Sarah', lastName: 'Lib', role: 'librarian' });
+    const admin = await User.create({ username: 'admin', email: 'admin@college.edu', passwordHash: DEFAULT_ADMIN_PASSWORD, firstName: 'Admin', lastName: 'User', role: 'admin' });
+    const lib = await User.create({ username: 'librarian', email: 'librarian@college.edu', passwordHash: DEFAULT_LIBRARIAN_PASSWORD, firstName: 'Sarah', lastName: 'Lib', role: 'librarian' });
 
     const facUsers = [];
     // Faculties derived from the images for B.Tech CSE (Data Science)
@@ -35,7 +41,7 @@ async function seed() {
         { username: 'saurabh.srivastava', email: 'saurabh.srivastava@niet.edu', firstName: 'Saurabh', lastName: 'Srivastava' },
     ];
     for (const f of facData) {
-        const u = await User.create({ ...f, passwordHash: 'fac123', role: 'faculty' });
+        const u = await User.create({ ...f, passwordHash: DEFAULT_FACULTY_PASSWORD, role: 'faculty' });
         facUsers.push(u);
     }
 
@@ -53,7 +59,7 @@ async function seed() {
         { username: 'julia', email: 'julia@student.edu', firstName: 'Julia', lastName: 'Thomas' },
     ];
     for (const s of stuData) {
-        const u = await User.create({ ...s, passwordHash: 'stu123', role: 'student' });
+        const u = await User.create({ ...s, passwordHash: DEFAULT_STUDENT_PASSWORD, role: 'student' });
         stuUsers.push(u);
     }
 
@@ -238,10 +244,10 @@ async function seed() {
 
     console.log('✅ Seed complete!');
     console.log('\n📋 Login credentials:');
-    console.log('  Admin:     admin / admin123');
-    console.log('  Faculty:   shivangi / fac123  |  honey.singh / fac123  |  ... (any faculty username / fac123)');
-    console.log('  Students:  alice / stu123  |  bob / stu123  ... (any student username / stu123)');
-    console.log('  Librarian: librarian / lib123');
+    console.log('  Admin:     admin / ' + DEFAULT_ADMIN_PASSWORD);
+    console.log('  Faculty:   shivangi / ' + DEFAULT_FACULTY_PASSWORD + '  |  honey.singh / ' + DEFAULT_FACULTY_PASSWORD);
+    console.log('  Students:  alice / ' + DEFAULT_STUDENT_PASSWORD + '  |  bob / ' + DEFAULT_STUDENT_PASSWORD + ' ...');
+    console.log('  Librarian: librarian / ' + DEFAULT_LIBRARIAN_PASSWORD);
 }
 
 seed().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });

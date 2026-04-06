@@ -84,38 +84,10 @@ export default function Events() {
 
     return (
         <div className="fade-in">
-            {/* Campus Events Hero */}
-            <div className="card hero-card shadow-accent" style={{ marginBottom: '32px' }}>
-                <div className="card-body" style={{ padding: '40px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <div className="badge badge-primary" style={{ marginBottom: '12px', background: 'rgba(var(--primary-rgb), 0.2)', color: 'var(--accent-light)' }}>
-                                <Sparkles size={12} style={{ marginRight: '6px' }} /> HAPPENING ON CAMPUS
-                            </div>
-                            <h1 style={{ margin: 0, fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                                Campus Activities
-                            </h1>
-                            <p style={{ margin: '12px 0 0 0', fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', lineHeight: '1.6' }}>
-                                Stay engaged with workshops, seminars, and cultural festivals. Your hub for all campus life updates.
-                            </p>
-                        </div>
-                        {isAdmin && (
-                            <button 
-                                className="btn btn-secondary glass-morph" 
-                                style={{ padding: '12px 24px', borderRadius: '14px', gap: '8px', fontWeight: 600 }} 
-                                onClick={() => setModalOpen(true)}
-                            >
-                                <Plus size={20} /> Launch New Event
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
             {/* Premium Toolbar */}
-            <div className="toolbar glass-morph" style={{ marginBottom: '32px', borderRadius: '16px' }}>
+            <div className="toolbar" style={{ marginBottom: '32px', borderRadius: '16px' }}>
                 <div className="toolbar-left">
-                    <div className="search-box glass-morph">
+                    <div className="search-box">
                         <Search size={18} />
                         <input 
                             className="form-control" 
@@ -124,10 +96,10 @@ export default function Events() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-                    <button className="btn btn-icon glass-morph"><Filter size={18} /></button>
+                    <button className="btn btn-icon"><Filter size={18} /></button>
                 </div>
                 <div className="toolbar-right">
-                    <div className="tab-group glass-morph" style={{ padding: '4px' }}>
+                    <div className="tab-group" style={{ padding: '4px' }}>
                         <button className="tab active">Upcoming</button>
                         <button className="tab">Passed</button>
                     </div>
@@ -142,19 +114,13 @@ export default function Events() {
                 {filteredEvents.map(event => {
                     const config = getTypeConfig(event.type);
                     return (
-                        <div key={event.id} className="card glass-morph hover-card fade-in" style={{ 
+                        <div key={event.id} className="card fade-in" style={{ 
                             padding: '0', 
                             display: 'flex', 
                             flexDirection: 'column',
                             overflow: 'hidden',
                             minHeight: '280px'
                         }}>
-                            <div style={{ 
-                                height: '8px', 
-                                width: '100%', 
-                                background: `linear-gradient(90deg, ${config.color}, transparent)` 
-                            }}></div>
-                            
                             <div style={{ padding: '28px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                                     <div style={{ 
@@ -166,7 +132,7 @@ export default function Events() {
                                         background: `${config.color}15`, 
                                         color: config.color,
                                         fontSize: '0.7rem',
-                                        fontWeight: 800,
+                                        fontWeight: 600,
                                         textTransform: 'uppercase',
                                         letterSpacing: '0.5px',
                                         border: `1px solid ${config.color}30`
@@ -184,7 +150,7 @@ export default function Events() {
                                     )}
                                 </div>
 
-                                <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px', lineHeight: 1.3 }}>
+                                <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px', lineHeight: 1.3 }}>
                                     {event.title}
                                 </h3>
                                 
@@ -219,7 +185,7 @@ export default function Events() {
                                     </div>
                                 </div>
                                 
-                                <button className="btn btn-primary glass-morph" style={{ marginTop: '24px', width: '100%', justifyContent: 'center', borderRadius: '12px', padding: '12px' }}>
+                                <button className="btn btn-primary" style={{ marginTop: '24px', width: '100%', justifyContent: 'center', borderRadius: '12px', padding: '12px' }}>
                                     View Details <ChevronRight size={16} />
                                 </button>
                             </div>
@@ -228,7 +194,7 @@ export default function Events() {
                 })}
 
                 {filteredEvents.length === 0 && (
-                    <div className="empty-state glass-morph fade-in" style={{ gridColumn: '1/-1', padding: '100px 40px', textAlign: 'center' }}>
+                    <div className="empty-state fade-in" style={{ gridColumn: '1/-1', padding: '100px 40px', textAlign: 'center' }}>
                         <div style={{ 
                             width: '80px', 
                             height: '80px', 
@@ -253,26 +219,26 @@ export default function Events() {
 
             {/* Create Event Modal */}
             <ModalOverlay isOpen={modalOpen} onClose={() => setModalOpen(false)}>
-                <div className="glass-morph" style={{ borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <ModalHeader title="Initialize Campus Event" onClose={() => setModalOpen(false)} />
                     <form onSubmit={handleSave}>
                         <ModalBody style={{ padding: '32px' }}>
                             <div className="form-group">
                                 <label style={{ fontWeight: 600, marginBottom: '10px', display: 'block' }}>Event Title</label>
-                                <input className="form-control glass-morph" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="e.g. Annual Tech Symposium" />
+                                <input className="form-control" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} required placeholder="e.g. Annual Tech Symposium" />
                             </div>
                             <div className="form-group">
                                 <label style={{ fontWeight: 600, marginBottom: '10px', display: 'block' }}>Description</label>
-                                <textarea className="form-control glass-morph" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Tell us more about the event..." />
+                                <textarea className="form-control" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Tell us more about the event..." />
                             </div>
                             <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                 <div className="form-group">
                                     <label style={{ fontWeight: 600, marginBottom: '10px', display: 'block' }}>Event Date</label>
-                                    <input type="date" className="form-control glass-morph" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                                    <input type="date" className="form-control" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
                                 </div>
                                 <div className="form-group">
                                     <label style={{ fontWeight: 600, marginBottom: '10px', display: 'block' }}>Event Type</label>
-                                    <select className="form-control glass-morph" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+                                    <select className="form-control" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
                                         <option value="workshop">Workshop</option>
                                         <option value="seminar">Seminar</option>
                                         <option value="cultural">Cultural</option>
@@ -285,13 +251,13 @@ export default function Events() {
                                 <label style={{ fontWeight: 600, marginBottom: '10px', display: 'block' }}>Campus Location</label>
                                 <div style={{ position: 'relative' }}>
                                     <MapPin size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-light)' }} />
-                                    <input className="form-control glass-morph" style={{ paddingLeft: '44px' }} value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Auditorium A, Main Campus" />
+                                    <input className="form-control" style={{ paddingLeft: '44px' }} value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Auditorium A, Main Campus" />
                                 </div>
                             </div>
                         </ModalBody>
                         <ModalFooter style={{ padding: '24px 32px', background: 'rgba(0,0,0,0.2)' }}>
                             <button type="button" className="btn btn-secondary btn-outline" onClick={() => setModalOpen(false)}>Cancel</button>
-                            <button type="submit" className="btn btn-primary shadow-accent" style={{ padding: '12px 32px', borderRadius: '12px' }}>Publish Event</button>
+                            <button type="submit" className="btn btn-primary" style={{ padding: '12px 32px', borderRadius: '12px' }}>Publish Event</button>
                         </ModalFooter>
                     </form>
                 </div>
@@ -299,7 +265,7 @@ export default function Events() {
 
             {/* Delete Confirmation */}
             <ModalOverlay isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
-                <div className="glass-morph" style={{ borderRadius: '24px', overflow: 'hidden', maxWidth: '450px' }}>
+                <div className="" style={{ borderRadius: 'var(--radius-lg)', overflow: 'hidden', maxWidth: '450px' }}>
                     <ModalHeader title="Confirm Termination" icon={AlertTriangle} onClose={() => setDeleteTarget(null)} />
                     <ModalBody style={{ padding: '32px', textAlign: 'center' }}>
                         <div style={{ color: 'var(--danger)', marginBottom: '20px' }}>

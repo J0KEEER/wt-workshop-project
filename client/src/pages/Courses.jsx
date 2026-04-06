@@ -140,19 +140,7 @@ export default function Courses() {
 
     return (
         <div className="fade-in">
-            <div className="card hero-card" style={{ marginBottom: '32px' }}>
-                <div className="card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <h2 style={{ margin: 0, fontSize: '2rem', fontWeight: 800 }}>Academic Curriculum</h2>
-                            <p style={{ margin: '8px 0 0 0', opacity: 0.9 }}>Centralized subject management, credit distribution, and faculty assignments across all departments.</p>
-                        </div>
-                        <BookOpen size={48} style={{ opacity: 0.2 }} />
-                    </div>
-                </div>
-            </div>
-
-            <div className="toolbar glass-morph" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
+            <div className="toolbar" style={{ marginBottom: '24px', padding: '16px 24px', borderRadius: '20px' }}>
                 <div className="toolbar-left">
                     <div className="search-box">
                         <Search size={18} />
@@ -167,7 +155,7 @@ export default function Courses() {
                         <Plus size={18} /> Add Subject
                     </button>
                 </div>
-            </div>            <div className="table-wrapper glass-morph" style={{ position: 'relative', minHeight: '200px', borderRadius: '24px', overflow: 'hidden' }}>
+            </div>            <div className="table-wrapper" style={{ position: 'relative', minHeight: '200px', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
                 {loading && (
                     <div style={{
                         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
@@ -194,7 +182,7 @@ export default function Courses() {
                         {sortedCourses.map(c => (
                             <tr key={c.id} className="fade-in">
                                 <td style={{ padding: '16px 20px' }}>
-                                    <div style={{ fontWeight: 800, color: 'var(--accent-light)', fontSize: '0.95rem', letterSpacing: '0.5px' }}>{c.code}</div>
+                                    <div style={{ fontWeight: 600, color: 'var(--accent-light)', fontSize: '0.95rem', letterSpacing: '0.5px' }}>{c.code}</div>
                                 </td>
                                 <td>
                                     <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1rem' }}>{c.title}</div>
@@ -205,7 +193,7 @@ export default function Courses() {
                                     </span>
                                 </td>
                                 <td>
-                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{c.credits}</div>
+                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{c.credits}</div>
                                     <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Credits</div>
                                 </td>
                                 <td>
@@ -225,7 +213,7 @@ export default function Courses() {
                                 <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <Users size={14} style={{ opacity: 0.5 }} />
-                                        <span style={{ fontWeight: 800 }}>{c.capacity}</span>
+                                        <span style={{ fontWeight: 600 }}>{c.capacity}</span>
                                     </div>
                                 </td>
                                 <td style={{ textAlign: 'right', paddingRight: '20px' }}>

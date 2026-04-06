@@ -137,48 +137,7 @@ export default function Library() {
 
     return (
         <div className="fade-in">
-            {/* Institutional Hero */}
-            <div className="hero-card" style={{ 
-                background: 'linear-gradient(135deg, #1e1e2e 0%, #111119 100%)',
-                padding: '40px',
-                borderRadius: '32px',
-                marginBottom: '32px',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }}>
-                <div style={{ position: 'relative', zIndex: 2 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-                        <div className="status-dot status-online" style={{ width: '12px', height: '12px' }}></div>
-                        <span style={{ color: 'var(--accent-light)', fontWeight: 800, letterSpacing: '2px', fontSize: '0.75rem' }}>CENTRAL ARCHIVES</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ flex: 1 }}>
-                            <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                                <LibraryBig size={40} className="text-info" strokeWidth={2.5} /> Knowledge Hub
-                            </h1>
-                            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginTop: '12px', maxWidth: '600px', lineHeight: '1.6' }}>
-                                Institutional digital repository facilitating seamless access to academic literature, global research journals, and advanced resource management.
-                            </p>
-                        </div>
-                        {isLibrarian && (
-                            <button 
-                                className="btn btn-primary shadow-accent" 
-                                style={{ borderRadius: '16px', padding: '12px 24px', fontWeight: 800, letterSpacing: '0.5px' }} 
-                                onClick={openCreate}
-                            >
-                                <Plus size={20} style={{ marginRight: '10px' }} /> ENLIST RESOURCE
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div style={{ position: 'absolute', right: '-40px', top: '-40px', opacity: 0.03 }}>
-                    <ScrollText size={380} strokeWidth={1} />
-                </div>
-            </div>
-
-            <div className="tab-container glass-morph" style={{ 
+            <div className="tab-container" style={{ 
                 padding: '8px', 
                 borderRadius: '20px', 
                 marginBottom: '32px', 
@@ -196,9 +155,9 @@ export default function Library() {
                 </button>
             </div>
 
-            <div className="toolbar glass-morph" style={{ 
+            <div className="toolbar" style={{ 
                 padding: '20px', 
-                borderRadius: '24px', 
+                borderRadius: 'var(--radius-lg)', 
                 marginBottom: '32px',
                 background: 'rgba(255,255,255,0.02)',
                 border: '1px solid rgba(255,255,255,0.05)'
@@ -223,7 +182,7 @@ export default function Library() {
                     </div>
                 </div>
                 <div className="toolbar-right">
-                    <div className="badge badge-outline" style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 800 }}>
+                    <div className="badge badge-outline" style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 600 }}>
                         {tab === 'books' ? books.length : tab === 'loans' ? loans.length : reservations.length} RESOURCES INDEXED
                     </div>
                 </div>
@@ -231,7 +190,7 @@ export default function Library() {
 
             {/* Books Tab */}
             {tab === 'books' && (
-                <div className="card glass-morph shadow-premium" style={{ borderRadius: '28px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="card" style={{ borderRadius: '28px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div className="table-wrapper">
                         <table>
                             <thead>
@@ -248,7 +207,7 @@ export default function Library() {
                                 {books.map(b => (
                                     <tr key={b.id} className="hover-row">
                                         <td style={{ paddingLeft: '32px' }}>
-                                            <div style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '1rem' }}>{b.title}</div>
+                                            <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '1rem' }}>{b.title}</div>
                                             <div style={{ fontSize: '0.7rem', color: 'var(--accent-light)', fontFamily: 'monospace', textTransform: 'uppercase', marginTop: '4px', fontWeight: 700 }}>REF-ID: {b.isbn || 'INTERNAL-INDEX'}</div>
                                         </td>
                                         <td>
@@ -256,7 +215,7 @@ export default function Library() {
                                             <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>{b.publisher || 'UNIVERSAL PRESS'}</div>
                                         </td>
                                         <td>
-                                            <span className="badge badge-outline" style={{ fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase', borderRadius: '8px', padding: '4px 10px' }}>{b.category}</span>
+                                            <span className="badge badge-outline" style={{ fontSize: '0.65rem', fontWeight: 600, textTransform: 'uppercase', borderRadius: '8px', padding: '4px 10px' }}>{b.category}</span>
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '160px' }}>
@@ -269,23 +228,23 @@ export default function Library() {
                                                     }}></div>
                                                 </div>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <span style={{ fontWeight: 800, color: b.availableCopies > 0 ? 'var(--success)' : 'var(--danger)', fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                                                    <span style={{ fontWeight: 600, color: b.availableCopies > 0 ? 'var(--success)' : 'var(--danger)', fontSize: '0.7rem', textTransform: 'uppercase' }}>
                                                         {b.availableCopies} Units In Stock
                                                     </span>
                                                     <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>TOTAL: {b.totalCopies}</span>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><div style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--info)', fontSize: '0.85rem' }}>[{b.location || 'QUEUE-ONLY'}]</div></td>
+                                        <td><div style={{ fontFamily: 'monospace', fontWeight: 600, color: 'var(--info)', fontSize: '0.85rem' }}>[{b.location || 'QUEUE-ONLY'}]</div></td>
                                         <td style={{ textAlign: 'right', paddingRight: '32px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                                                 {b.availableCopies > 0 ? (
-                                                    <button className="btn btn-primary btn-sm shadow-accent" style={{ padding: '8px 20px', borderRadius: '12px', fontWeight: 800, fontSize: '0.75rem' }} onClick={() => handleBorrow(b.id)}>BORROW</button>
+                                                    <button className="btn btn-primary btn-sm" style={{ padding: '8px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '0.75rem' }} onClick={() => handleBorrow(b.id)}>BORROW</button>
                                                 ) : (
-                                                    <button className="btn btn-warning btn-sm" style={{ padding: '8px 20px', borderRadius: '12px', fontWeight: 800, fontSize: '0.75rem' }} onClick={() => handleReserve(b.id)}>WAITLIST</button>
+                                                    <button className="btn btn-warning btn-sm" style={{ padding: '8px 20px', borderRadius: '12px', fontWeight: 600, fontSize: '0.75rem' }} onClick={() => handleReserve(b.id)}>WAITLIST</button>
                                                 )}
                                                 {isLibrarian && (
-                                                    <div className="btn-group glass-morph" style={{ padding: '4px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)' }}>
+                                                    <div className="btn-group" style={{ padding: '4px', borderRadius: '10px', background: 'rgba(255,255,255,0.03)' }}>
                                                         <button className="btn btn-ghost btn-sm" onClick={() => openEdit(b)} title="Modify Registry"><Edit2 size={14} className="text-info" /></button>
                                                         <button className="btn btn-ghost btn-sm" onClick={() => setDeleteTarget(b)} title="Purge Record"><Trash2 size={14} className="text-danger" /></button>
                                                     </div>
@@ -300,7 +259,7 @@ export default function Library() {
                     {books.length === 0 && (
                         <div className="empty-state" style={{ padding: '80px 0' }}>
                             <LibraryBig size={64} className="text-muted" strokeWidth={1} style={{ marginBottom: '24px' }} />
-                            <h3 style={{ fontWeight: 900, letterSpacing: '-0.5px' }}>Archive Void</h3>
+                            <h3 style={{ fontWeight: 700, letterSpacing: '-0.5px' }}>Archive Void</h3>
                             <p style={{ opacity: 0.6, fontSize: '1.1rem' }}>Registry scan complete. No direct matches found within the specified parameters.</p>
                         </div>
                     )}
@@ -309,7 +268,7 @@ export default function Library() {
 
             {/* Loans Tab */}
             {tab === 'loans' && (
-                <div className="card glass-morph shadow-premium" style={{ borderRadius: '28px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="card" style={{ borderRadius: '28px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div className="table-wrapper">
                         <table>
                             <thead>
@@ -325,10 +284,10 @@ export default function Library() {
                             <tbody>
                                 {loans.map(l => (
                                     <tr key={l.id} className="hover-row">
-                                        <td style={{ paddingLeft: '32px' }}><div style={{ fontWeight: 800, color: 'var(--accent-light)', fontSize: '1rem' }}>{l.book?.title}</div></td>
+                                        <td style={{ paddingLeft: '32px' }}><div style={{ fontWeight: 600, color: 'var(--accent-light)', fontSize: '1rem' }}>{l.book?.title}</div></td>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(var(--accent-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 800, color: 'var(--accent-light)' }}>
+                                                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'rgba(var(--accent-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 600, color: 'var(--accent-light)' }}>
                                                     {l.user?.firstName[0]}{l.user?.lastName[0]}
                                                 </div>
                                                 <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>{l.user?.firstName} {l.user?.lastName}</span>
@@ -337,11 +296,11 @@ export default function Library() {
                                         <td>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>INITIATED: {l.borrowDate}</div>
-                                                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: l.status === 'active' && new Date() > new Date(l.dueDate) ? 'var(--danger)' : 'var(--text-primary)' }}>TERMINATION: {l.dueDate}</div>
+                                                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: l.status === 'active' && new Date() > new Date(l.dueDate) ? 'var(--danger)' : 'var(--text-primary)' }}>TERMINATION: {l.dueDate}</div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div style={{ fontWeight: 900, color: (l.fine > 0 || (l.status === 'active' && new Date() > new Date(l.dueDate))) ? 'var(--danger)' : 'var(--success)', fontSize: '1rem' }}>
+                                            <div style={{ fontWeight: 700, color: (l.fine > 0 || (l.status === 'active' && new Date() > new Date(l.dueDate))) ? 'var(--danger)' : 'var(--success)', fontSize: '1rem' }}>
                                                 {l.fine > 0 ? `$${l.fine}.00` : (l.status === 'active' && new Date() > new Date(l.dueDate)) ? 
                                                     `$${Math.ceil((new Date() - new Date(l.dueDate)) / (1000 * 60 * 60 * 24)) * 5}.00` : '$0.00'}
                                             </div>
@@ -349,14 +308,14 @@ export default function Library() {
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                 <div className={`status-dot ${l.status === 'returned' ? 'status-online' : (l.status === 'active' && new Date() > new Date(l.dueDate)) ? 'status-offline' : 'status-away'}`}></div>
-                                                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: l.status === 'returned' ? 'var(--success)' : (l.status === 'active' && new Date() > new Date(l.dueDate)) ? 'var(--danger)' : 'var(--warning)', letterSpacing: '0.5px' }}>
+                                                <span style={{ fontSize: '0.7rem', fontWeight: 600, color: l.status === 'returned' ? 'var(--success)' : (l.status === 'active' && new Date() > new Date(l.dueDate)) ? 'var(--danger)' : 'var(--warning)', letterSpacing: '0.5px' }}>
                                                     {(l.status === 'active' && new Date() > new Date(l.dueDate)) ? 'OVERDUE' : l.status.toUpperCase()}
                                                 </span>
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right', paddingRight: '32px' }}>
                                             {l.status === 'active' && (
-                                                <button className="btn btn-primary btn-sm shadow-accent" style={{ borderRadius: '10px', padding: '8px 16px', fontWeight: 800 }} onClick={() => handleReturn(l.id)}>RETURN HUB</button>
+                                                <button className="btn btn-primary btn-sm" style={{ borderRadius: '10px', padding: '8px 16px', fontWeight: 600 }} onClick={() => handleReturn(l.id)}>RETURN HUB</button>
                                             )}
                                         </td>
                                     </tr>
@@ -367,7 +326,7 @@ export default function Library() {
                     {loans.length === 0 && (
                         <div className="empty-state" style={{ padding: '80px 0' }}>
                             <History size={64} className="text-muted" strokeWidth={1} style={{ marginBottom: '24px' }} />
-                            <h3 style={{ fontWeight: 900, letterSpacing: '-0.5px' }}>No Active Circulation</h3>
+                            <h3 style={{ fontWeight: 700, letterSpacing: '-0.5px' }}>No Active Circulation</h3>
                             <p style={{ opacity: 0.6, fontSize: '1.1rem' }}>Knowledge streams are currently stagnant. No active resource circulations detected.</p>
                         </div>
                     )}

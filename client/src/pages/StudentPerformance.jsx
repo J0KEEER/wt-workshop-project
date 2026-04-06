@@ -26,8 +26,8 @@ const StudentPerformance = () => {
     return (
         <div className="fade-in space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="card glass stats-card">
-                    <div className="stats-icon bg-primary/10 text-primary">
+                <div className="card stats-card">
+                    <div className="stats-icon var(--accent-subtle) var(--accent-light)">
                         <Award size={24} />
                     </div>
                     <div className="stats-info">
@@ -35,7 +35,7 @@ const StudentPerformance = () => {
                         <h3>{data.gpa}</h3>
                     </div>
                 </div>
-                <div className="card glass stats-card">
+                <div className="card stats-card">
                     <div className="stats-icon bg-emerald/10 text-emerald">
                         <BookOpen size={24} />
                     </div>
@@ -44,7 +44,7 @@ const StudentPerformance = () => {
                         <h3>{data.totalCredits}</h3>
                     </div>
                 </div>
-                <div className="card glass stats-card">
+                <div className="card stats-card">
                     <div className="stats-icon bg-warning/10 text-warning">
                         <Star size={24} />
                     </div>
@@ -56,7 +56,7 @@ const StudentPerformance = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="card glass">
+                <div className="card">
                     <div className="card-header">
                         <h3><Target size={18} className="mr-2" /> Subject Strengths</h3>
                     </div>
@@ -78,7 +78,7 @@ const StudentPerformance = () => {
                     </div>
                 </div>
 
-                <div className="card glass">
+                <div className="card">
                     <div className="card-header">
                         <h3><TrendingUp size={18} className="mr-2" /> GPA Trend</h3>
                     </div>
@@ -90,7 +90,7 @@ const StudentPerformance = () => {
                 </div>
             </div>
 
-            <div className="card glass">
+            <div className="card">
                 <div className="card-header">
                     <h3>Recent Exam Results</h3>
                 </div>

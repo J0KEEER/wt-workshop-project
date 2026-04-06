@@ -1,12 +1,12 @@
 import express from 'express';
 import { Hostel, Room, HostelAllocation, Student, User } from '../models/index.js';
-import { authenticateToken, authorizeRole } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 import Fee from '../models/Fee.js';
 
 const router = express.Router();
 
 // Get all hostels and rooms (Admin/Faculty/Student)
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
     try {
         const hostels = await Hostel.findAll({
             include: [{
@@ -26,7 +26,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Get student's allocation
-router.get('/my-allocation', authenticateToken, async (req, res) => {
+router.get('/my-allocation', authenticate, async (req, res) => {
     try {
         const student = await Student.findOne({ where: { userId: req.user.id } });
         if (!student) return res.status(404).json({ message: 'Student profile not found' });
@@ -42,7 +42,7 @@ router.get('/my-allocation', authenticateToken, async (req, res) => {
 });
 
 // Allocate room (Admin only)
-router.post('/allocate', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.post('/allocate', authenticate, authorize('admin'), async (req, res) => {
     const { studentId, roomId, startDate, academicYear } = req.body;
     try {
         const room = await Room.findByPk(roomId);
@@ -82,7 +82,7 @@ router.post('/allocate', authenticateToken, authorizeRole(['admin']), async (req
 });
 
 // Vacate room
-router.delete('/allocate/:id', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.delete('/allocate/:id', authenticate, authorize('admin'), async (req, res) => {
     try {
         const allocation = await HostelAllocation.findByPk(req.params.id);
         if (!allocation) return res.status(404).json({ message: 'Allocation not found' });

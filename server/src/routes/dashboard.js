@@ -1,5 +1,5 @@
 import express from 'express';
-import { Student, Course, Faculty, Enrollment, AttendanceSession, AttendanceRecord, Exam, Fee, Book, BookLoan, User, Department, Feedback, Timetable } from '../models/index.js';
+import { Student, Course, Faculty, Enrollment, AttendanceSession, AttendanceRecord, Exam, Fee, Book, BookLoan, User, Department, Feedback, Timetable, CampusEvent, Holiday } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 import {  sequelize  } from '../db.js';
 import { Op } from 'sequelize';

@@ -80,31 +80,7 @@ export default function Feedback() {
 
   return (
     <div className="fade-in" style={{ maxWidth: '900px', margin: '0 auto' }}>
-      {/* Student Voice Hero */}
-      <div className="card hero-card shadow-accent" style={{ marginBottom: '32px' }}>
-          <div className="card-body" style={{ padding: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                      <div className="badge badge-info" style={{ marginBottom: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>
-                          <ShieldCheck size={12} style={{ marginRight: '6px' }} /> ANONYMOUS RESPONSE
-                      </div>
-                      <h1 style={{ margin: 0, fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                          Institutional Feedback
-                      </h1>
-                      <p style={{ margin: '12px 0 0 0', fontSize: '1.1rem', opacity: 0.9, maxWidth: '550px', lineHeight: '1.6' }}>
-                          Your voice shapes the future of learning. Share your honest insights on academic courses and faculty interaction.
-                      </p>
-                  </div>
-                  <div className="glass-morph" style={{ padding: '24px', borderRadius: '50%', color: 'var(--accent-light)' }}>
-                      <Sparkles size={48} />
-                  </div>
-              </div>
-          </div>
-      </div>
-
-      <div className="card glass-morph" style={{ padding: '40px', borderRadius: '24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '4px', background: 'linear-gradient(90deg, var(--accent-light), transparent)' }}></div>
-        
+      <div className="card" style={{ padding: '40px', borderRadius: 'var(--radius-lg)' }}>
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px' }}>
             <div className="form-group">
@@ -113,7 +89,7 @@ export default function Feedback() {
               </label>
               <div className="input-with-icon">
                 <select
-                  className="form-control glass-morph"
+                  className="form-control"
                   style={{ height: '56px', fontSize: '1rem', paddingLeft: '16px' }}
                   value={selectedCourseId}
                   onChange={(e) => setSelectedCourseId(e.target.value)}
@@ -135,7 +111,7 @@ export default function Feedback() {
               </label>
               <div style={{ position: 'relative' }}>
                 <textarea
-                  className="form-control glass-morph"
+                  className="form-control"
                   style={{ minHeight: '200px', paddingTop: '20px', paddingLeft: '20px', fontSize: '1.05rem', lineHeight: '1.6' }}
                   placeholder="Share your detailed experience regarding teaching methodologies, materials, and overall engagement..."
                   value={content}
@@ -144,7 +120,7 @@ export default function Feedback() {
                 />
                 
                 {/* Real-time Sentiment Intelligence Preview */}
-                <div className="glass-morph sentiment-intelligence" style={{ 
+                <div className="sentiment-intelligence" style={{ 
                     position: 'absolute', 
                     bottom: '16px', 
                     right: '16px',
@@ -158,7 +134,7 @@ export default function Feedback() {
                     background: 'rgba(0,0,0,0.4)',
                     backdropFilter: 'blur(12px)'
                 }}>
-                  <span style={{ fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.7 }}>Analysis:</span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.7 }}>Analysis:</span>
                   <div className="sentiment-visualization">
                     {previewSentiment === 'positive' && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80' }}>
@@ -193,7 +169,7 @@ export default function Feedback() {
         </form>
       </div>
 
-      <div className="card glass-morph" style={{ marginTop: '32px', padding: '24px 32px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+      <div className="card" style={{ marginTop: '32px', padding: '24px 32px', display: 'flex', gap: '20px', alignItems: 'center' }}>
         <div style={{ height: '56px', width: '56px', borderRadius: '16px', background: 'rgba(var(--primary-rgb), 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-light)', flexShrink: 0 }}>
             <Info size={28} />
         </div>

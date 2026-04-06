@@ -46,39 +46,14 @@ export default function Approvals() {
 
     return (
         <div className="fade-in">
-            {/* Decision Hub Hero */}
-            <div className="card hero-card shadow-accent" style={{ marginBottom: '32px' }}>
-                <div className="card-body" style={{ padding: '40px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                            <div className="badge badge-info" style={{ marginBottom: '12px', background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>
-                                <ShieldCheck size={12} style={{ marginRight: '6px' }} /> SECURITY GATEWAY
-                            </div>
-                            <h1 style={{ margin: 0, fontSize: '2.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                                Decision Center
-                            </h1>
-                            <p style={{ margin: '12px 0 0 0', fontSize: '1.1rem', opacity: 0.9, maxWidth: '600px', lineHeight: '1.6' }}>
-                                Review and authorize institutional access requests. Maintain the integrity of the campus digital ecosystem.
-                            </p>
-                        </div>
-                        <div className="glass-morph" style={{ padding: '24px', borderRadius: '20px', textAlign: 'center', minWidth: '160px' }}>
-                            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--warning)', lineHeight: 1 }}>{pending.length}</div>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginTop: '8px', opacity: 0.8 }}>
-                                Pending Review
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             {/* Premium Toolbar */}
-            <div className="toolbar glass-morph" style={{ marginBottom: '32px', borderRadius: '16px' }}>
+            <div className="toolbar" style={{ marginBottom: '32px', borderRadius: '16px' }}>
                 <div className="toolbar-left">
-                    <div className="search-box glass-morph">
+                    <div className="search-box">
                         <Search size={18} />
                         <input className="form-control" placeholder="Search by name, email or ID..." />
                     </div>
-                    <button className="btn btn-icon glass-morph"><Filter size={18} /></button>
+                    <button className="btn btn-icon"><Filter size={18} /></button>
                 </div>
                 <div className="toolbar-right">
                     <button className="btn btn-secondary" style={{ gap: '8px' }}>
@@ -98,16 +73,16 @@ export default function Approvals() {
                     gap: '24px' 
                 }}>
                     {pending.map(user => (
-                        <div key={user.id} className="card glass-morph hover-card fade-in" style={{ padding: '28px', position: 'relative', overflow: 'hidden' }}>
+                        <div key={user.id} className="card fade-in" style={{ padding: '28px', position: 'relative', overflow: 'hidden' }}>
                             <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: 'var(--warning)' }}></div>
                             
                             <div className="user-info-header" style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
-                                <div className="avatar-premium" style={{ 
-                                    width: '64px', 
-                                    height: '64px', 
-                                    borderRadius: '16px', 
-                                    background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.2), rgba(var(--primary-rgb), 0.05))', 
-                                    display: 'flex', 
+                                <div className="avatar-premium" style={{
+                                    width: '64px',
+                                    height: '64px',
+                                    borderRadius: '16px',
+                                    background: 'var(--accent-subtle)',
+                                    display: 'flex',
                                     alignItems: 'center', 
                                     justifyContent: 'center',
                                     color: 'var(--accent-light)',
@@ -182,7 +157,7 @@ export default function Approvals() {
                     ))}
                 </div>
             ) : (
-                <div className="empty-state glass-morph fade-in" style={{ padding: '80px 40px', textAlign: 'center' }}>
+                <div className="empty-state fade-in" style={{ padding: '80px 40px', textAlign: 'center' }}>
                     <div style={{ 
                         width: '100px', 
                         height: '100px', 
@@ -201,7 +176,7 @@ export default function Approvals() {
                     <p style={{ maxWidth: '450px', margin: '0 auto', color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.6' }}>
                         All caught up! Every access request has been reviewed. The institutional gateway is currently clear.
                     </p>
-                    <button className="btn btn-secondary glass-morph" style={{ marginTop: '32px', gap: '8px' }} onClick={fetchPending}>
+                    <button className="btn btn-secondary" style={{ marginTop: '32px', gap: '8px' }} onClick={fetchPending}>
                         <ArrowRightCircle size={18} /> Refresh Registry
                     </button>
                 </div>

@@ -189,7 +189,7 @@ export default function Attendance() {
         for (let i = 1; i <= daysInMonth; i++) days.push(new Date(d.getFullYear(), d.getMonth(), i).toISOString().split('T')[0]);
 
         return (
-            <div className="attendance-calendar glass-morph" style={{ padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+            <div className="attendance-calendar" style={{ padding: '16px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
                 <div className="cal-header" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <button className="btn btn-icon btn-sm" style={{ padding: '4px' }} onClick={() => {
                         const newDate = new Date(date);
@@ -204,7 +204,7 @@ export default function Attendance() {
                     }}><ChevronRight size={16}/></button>
                 </div>
                 <div className="cal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center' }}>
-                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => <div key={day} style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)', marginBottom: '4px' }}>{day}</div>)}
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => <div key={day} style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>{day}</div>)}
                     {days.map((dayDate, idx) => {
                         if (!dayDate) return <div key={`empty-${idx}`} style={{ height: '32px' }} />;
                         
@@ -228,7 +228,7 @@ export default function Attendance() {
                                     borderRadius: '8px',
                                     cursor: 'pointer',
                                     position: 'relative',
-                                    fontWeight: isSelected ? 800 : 500,
+                                    fontWeight: isSelected ? 600 : 500,
                                     background: isSelected ? 'var(--accent-primary)' : isHol ? 'rgba(239, 68, 68, 0.1)' : isScheduled ? 'rgba(138, 148, 255, 0.1)' : 'transparent',
                                     color: isSelected ? 'white' : isHol ? 'var(--danger)' : isScheduled ? 'var(--accent-light)' : 'var(--text-primary)',
                                     border: isSelected ? 'none' : isScheduled ? '1px solid rgba(138, 148, 255, 0.3)' : 'none'
@@ -250,7 +250,7 @@ export default function Attendance() {
     return (
         <div className="page-container fade-in" style={{ display: 'flex', gap: '32px', alignItems: 'flex-start' }}>
             {/* Sidebar Calendar & Filters */}
-            <div className="sidebar-glass glass-morph" style={{ width: '380px', padding: '32px', borderRadius: '32px', position: 'sticky', top: '24px' }}>
+            <div className="sidebar-glass" style={{ width: '380px', padding: '32px', borderRadius: '32px', position: 'sticky', top: '24px' }}>
                 <div className="sidebar-header" style={{ marginBottom: '32px' }}>
                     <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
                         <div style={{ background: 'var(--accent-bg)', color: 'var(--accent-light)', padding: '8px', borderRadius: '12px' }}>
@@ -262,9 +262,9 @@ export default function Attendance() {
                 
                 <div className="sidebar-content">
                     <div className="form-group" style={{ marginBottom: '24px' }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Subject / Laboratory</label>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Subject / Laboratory</label>
                         <select 
-                            className="input-field glass-morph" 
+                            className="input-field" 
                             style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none' }}
                             value={selectedCourseId} 
                             onChange={(e) => setSelectedCourseId(e.target.value)}
@@ -277,9 +277,9 @@ export default function Attendance() {
                     </div>
 
                     <div className="form-group" style={{ marginBottom: '32px' }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Time Slot / Period</label>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block' }}>Time Slot / Period</label>
                         <select 
-                            className="input-field glass-morph" 
+                            className="input-field" 
                             style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--border-color)', outline: 'none' }}
                             value={period} 
                             onChange={(e) => setPeriod(e.target.value)}
@@ -292,7 +292,7 @@ export default function Attendance() {
                     </div>
 
                     <div style={{ pointerEvents: selectedCourseId ? 'auto' : 'none', opacity: selectedCourseId ? 1 : 0.5 }}>
-                        <label style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '16px', display: 'block' }}>Attendance Date</label>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginBottom: '16px', display: 'block' }}>Attendance Date</label>
                         {renderCalendar()}
                         <div className="cal-legend" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.7rem', marginTop: '24px', color: 'var(--text-muted)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-glow)', border: '1px solid var(--accent-primary)' }} /> Scheduled</div>
@@ -306,34 +306,16 @@ export default function Attendance() {
             {/* Main Content Area */}
             <div className="main-content-flow" style={{ flex: 1 }}>
                 {!selectedCourseId ? (
-                    <div className="empty-state glass-morph" style={{ height: '500px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <div className="empty-state" style={{ height: '500px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                         <div style={{ background: 'var(--surface-light)', padding: '24px', borderRadius: '50%', marginBottom: '24px' }}>
                             <BookOpen size={64} style={{ color: 'var(--accent-light)', opacity: 0.8 }} />
                         </div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 8px 0' }}>Attendance Registry</h3>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 8px 0' }}>Attendance Registry</h3>
                         <p style={{ color: 'var(--text-muted)', fontSize: '1rem' }}>Select a subject from the left sidebar to start tracking student presence.</p>
                     </div>
                 ) : (
                     <>
-                        <div className="card hero-card" style={{ marginBottom: '32px' }}>
-                            <div className="card-body" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div>
-                                    <h2 style={{ margin: 0, fontSize: '1.75rem' }}>{selectedCourse?.title} <span style={{ opacity: 0.6, fontWeight: 400 }}>({selectedCourse?.code})</span></h2>
-                                    <p style={{ margin: '8px 0 0 0', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.95rem', opacity: 0.9 }}>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CalendarIcon size={16} /> {new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric'})}</span>
-                                        <span style={{ opacity: 0.3 }}>|</span>
-                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={16} /> {period} Slot</span>
-                                    </p>
-                                </div>
-                                <div className="header-actions">
-                                    <button className="btn btn-secondary" style={{ background: 'rgba(255,255,255,0.1)', color: 'white', borderColor: 'rgba(255,255,255,0.2)' }} onClick={handleSubmit} disabled={saving}>
-                                        <Save size={18} /> {saving ? 'Recording...' : 'Finalize Attendance'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="tab-container glass-morph" style={{ marginBottom: '32px' }}>
+                        <div className="tab-container" style={{ marginBottom: '32px' }}>
                             <div className={`tab-item ${tab === 'mark' ? 'active' : ''}`} onClick={() => setTab('mark')}>
                                 <Save size={16} /> Mark Attendance
                             </div>
@@ -346,14 +328,14 @@ export default function Attendance() {
                             <div className="alert-banner" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '20px', borderRadius: '16px', marginBottom: '32px', display: 'flex', alignItems: 'center', gap: '20px', color: 'var(--danger)' }}>
                                 <Palmtree size={32} />
                                 <div>
-                                    <div style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Institutional Holiday</div>
+                                    <div style={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Institutional Holiday</div>
                                     <div style={{ fontSize: '0.9rem', opacity: 0.9 }}>You are marking attendance on a public holiday. Please ensure this is an intended extra session.</div>
                                 </div>
                             </div>
                         )}
 
                         {tab === 'mark' ? (
-                            <div className="table-wrapper glass-morph">
+                            <div className="table-wrapper">
                                 <div className="toolbar" style={{ padding: '0 0 24px 0', border: 'none', background: 'transparent' }}>
                                     <div className="toolbar-left">
                                         <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Candidate Roster</h3>
@@ -386,11 +368,11 @@ export default function Attendance() {
                                                         <td>{idx + 1}</td>
                                                         <td>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'var(--accent-light)', border: '1px solid var(--border-color)' }}>
+                                                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--surface-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: 'var(--accent-light)', border: '1px solid var(--border-color)' }}>
                                                                     {s.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                                                                 </div>
                                                                 <div>
-                                                                    <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{s.name}</div>
+                                                                    <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{s.name}</div>
                                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Undergraduate Student</div>
                                                                 </div>
                                                             </div>
@@ -406,7 +388,7 @@ export default function Attendance() {
                                                                             padding: '6px 16px',
                                                                             borderRadius: '8px',
                                                                             fontSize: '0.75rem',
-                                                                            fontWeight: 800,
+                                                                            fontWeight: 600,
                                                                             textTransform: 'uppercase',
                                                                             letterSpacing: '0.5px',
                                                                             cursor: 'pointer',
@@ -437,7 +419,7 @@ export default function Attendance() {
                                 )}
                             </div>
                         ) : (
-                            <div className="table-wrapper glass-morph">
+                            <div className="table-wrapper">
                                 <div style={{ padding: '0 0 24px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Performance Metrics</h3>
                                     <span className="badge badge-primary">{students.length} Total Enrolled</span>
@@ -462,7 +444,7 @@ export default function Attendance() {
                                                 return (
                                                     <tr key={r.studentId} className="hover-row">
                                                         <td>
-                                                            <div style={{ fontWeight: 800 }}>{student ? student.name : 'Unknown'}</div>
+                                                            <div style={{ fontWeight: 600 }}>{student ? student.name : 'Unknown'}</div>
                                                             <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{student?.rollNo || 'N/A'}</div>
                                                         </td>
                                                         <td>{r.total}</td>
@@ -475,7 +457,7 @@ export default function Attendance() {
                                                                 <div style={{ width: '60px', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
                                                                     <div style={{ width: `${r.percentage}%`, height: '100%', background: r.percentage >= 75 ? 'var(--success)' : r.percentage >= 50 ? 'var(--warning)' : 'var(--danger)' }} />
                                                                 </div>
-                                                                <span style={{ fontWeight: 800, minWidth: '40px', color: r.percentage >= 75 ? 'var(--success)' : r.percentage >= 50 ? 'var(--warning)' : 'var(--danger)' }}>
+                                                                <span style={{ fontWeight: 600, minWidth: '40px', color: r.percentage >= 75 ? 'var(--success)' : r.percentage >= 50 ? 'var(--warning)' : 'var(--danger)' }}>
                                                                     {r.percentage}%
                                                                 </span>
                                                             </div>

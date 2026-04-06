@@ -62,7 +62,7 @@ router.post('/login', [
             if (student) {
                 if (!student.userId) {
                     // First time login for student: check default password (rollNo)
-                    if (password === student.rollNo || password === 'password123') {
+                    if (password === student.rollNo) {
                         user = await User.create({
                             username: student.rollNo,
                             email: student.email,
@@ -83,7 +83,7 @@ router.post('/login', [
                 if (faculty) {
                     if (!faculty.userId) {
                         // First time login for faculty: check default password (email)
-                        if (password === faculty.email || password === 'password123') {
+                        if (password === faculty.email) {
                             user = await User.create({
                                 username: faculty.email.split('@')[0],
                                 email: faculty.email,
@@ -112,7 +112,8 @@ router.post('/login', [
         const tokens = generateTokens(user);
         res.json({ user: user.toJSON(), ...tokens });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -139,7 +140,8 @@ router.post('/register', [
         const tokens = generateTokens(user);
         res.status(201).json({ user: user.toJSON(), ...tokens });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Registration error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -156,6 +158,7 @@ router.post('/refresh-token', async (req, res) => {
         const tokens = generateTokens(user);
         res.json(tokens);
     } catch (err) {
+        console.error('Refresh token error:', err);
         res.status(401).json({ error: 'Invalid refresh token' });
     }
 });
@@ -172,7 +175,8 @@ router.get('/me', authenticate, async (req, res) => {
         if (!user) return res.status(404).json({ error: 'User not found' });
         res.json(user.toJSON());
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error('Auth me error:', err);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

@@ -71,7 +71,7 @@ export default function FacultySchedule() {
                                         {dayClasses.map((cl, i) => {
                                             const isLive = isToday && currentTime >= cl.startTime && currentTime <= cl.endTime;
                                             return (
-                                                <div key={i} className="hover-card glass" style={{ 
+                                                <div key={i} className="" style={{ 
                                                     padding: '12px', 
                                                     borderRadius: 'var(--radius-md)',
                                                     borderLeft: `4px solid ${isLive ? 'var(--success)' : 'var(--accent)'}`,

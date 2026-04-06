@@ -1,12 +1,12 @@
 import express from 'express';
 import { TransportRoute, TransportStop, TransportSubscription, Vehicle, Student, User } from '../models/index.js';
-import { authenticateToken, authorizeRole } from '../middleware/auth.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 import Fee from '../models/Fee.js';
 
 const router = express.Router();
 
 // Get all routes and stops (Admin/Faculty/Student)
-router.get('/routes', authenticateToken, async (req, res) => {
+router.get('/routes', authenticate, async (req, res) => {
     try {
         const routes = await TransportRoute.findAll({
             include: [{
@@ -21,7 +21,7 @@ router.get('/routes', authenticateToken, async (req, res) => {
 });
 
 // Get student's subscription
-router.get('/my-subscription', authenticateToken, async (req, res) => {
+router.get('/my-subscription', authenticate, async (req, res) => {
     try {
         const student = await Student.findOne({ where: { userId: req.user.id } });
         if (!student) return res.status(404).json({ message: 'Student profile not found' });
@@ -37,7 +37,7 @@ router.get('/my-subscription', authenticateToken, async (req, res) => {
 });
 
 // Subscribe to transport (Student only)
-router.post('/subscribe', authenticateToken, authorizeRole(['student']), async (req, res) => {
+router.post('/subscribe', authenticate, authorize('student'), async (req, res) => {
     const { stopId, vehicleId, startDate } = req.body;
     try {
         const student = await Student.findOne({ where: { userId: req.user.id } });
@@ -74,7 +74,7 @@ router.post('/subscribe', authenticateToken, authorizeRole(['student']), async (
 });
 
 // List all vehicles (Admin)
-router.get('/vehicles', authenticateToken, authorizeRole(['admin']), async (req, res) => {
+router.get('/vehicles', authenticate, authorize('admin'), async (req, res) => {
     try {
         const vehicles = await Vehicle.findAll();
         res.json(vehicles);

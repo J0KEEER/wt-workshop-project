@@ -8,6 +8,8 @@ export function initSocket(httpServer) {
             origin: (origin, callback) => callback(null, true),
             credentials: true,
         },
+        pingTimeout: 60000,
+        pingInterval: 25000,
     });
 
     io.on('connection', (socket) => {

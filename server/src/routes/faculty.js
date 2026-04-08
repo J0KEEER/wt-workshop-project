@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import {  Faculty, Course, User, Department  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
@@ -47,25 +48,58 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 });
 
+// Validation for faculty creation/update
+const validateFaculty = [
+    body('name').notEmpty().trim().escape(),
+    body('email').isEmail().normalizeEmail(),
+    body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
+    body('department').optional().isString(),
+    body('designation').optional().isString(),
+    body('status').optional().isIn(['active', 'inactive', 'on-leave']),
+];
+
 // POST /api/faculty
-router.post('/', authenticate, authorize('admin'), async (req, res) => {
+router.post('/', authenticate, authorize('admin'), validateFaculty, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const faculty = await Faculty.create(req.body);
         res.status(201).json(faculty);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
 // PUT /api/faculty/:id
-router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin'), validateFaculty, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const faculty = await Faculty.findByPk(req.params.id);
-        if (!faculty) return res.status(404).json({ error: 'Faculty not found' });
+        if (!faculty) {
+            return res.status(404).json({
+                error: 'Faculty not found',
+                code: 'FACULTY_NOT_FOUND'
+            });
+        }
         await faculty.update(req.body);
         res.json(faculty);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

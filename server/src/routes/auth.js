@@ -1,7 +1,8 @@
 import { Op } from "sequelize";
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { body, validationResult } from 'express-validator';
+import crypto from 'crypto';
+import { body, validationResult, matchedData } from 'express-validator';
 import { User, Student, Faculty } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';
 import dotenv from 'dotenv';
@@ -10,15 +11,20 @@ dotenv.config();
 const router = express.Router();
 
 function generateTokens(user) {
-    const payload = { 
-        id: user.id, 
-        username: user.username, 
-        email: user.email, 
+    const payload = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
         role: user.role,
-        batchExpiresAt: user.batchExpiresAt 
+        batchExpiresAt: user.batchExpiresAt,
+        jti: crypto.randomUUID() // Unique token ID for potential revocation
     };
-    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '1d' });
-    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' });
+    const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_EXPIRES_IN || '15m' // Shorter expiry for better security
+    });
+    const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d'
+    });
     return { accessToken, refreshToken };
 }
 
@@ -26,15 +32,21 @@ function generateTokens(user) {
 router.post('/login', [
     body('username').notEmpty().withMessage('Username is required'),
     body('password').notEmpty().withMessage('Password is required'),
-], async (req, res) => {
+], async (req, res, next) => {
     try {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
 
         const { username, password } = req.body;
-        
+
         // 1. Try to find the user in the User table first
-        let user = await User.findOne({ 
+        let user = await User.findOne({
             where: {
                 [Op.or]: [
                     { username },
@@ -50,8 +62,8 @@ router.post('/login', [
         // 2. If not found, try fallback to Student/Faculty tables
         if (!user) {
             // Check Student by rollNo or email
-            let student = await Student.findOne({ 
-                where: { 
+            let student = await Student.findOne({
+                where: {
                     [Op.or]: [
                         { rollNo: username },
                         { email: username }
@@ -75,6 +87,13 @@ router.post('/login', [
                         user = await User.findByPk(user.id, {
                             include: [{ model: Student, as: 'studentProfile' }]
                         });
+                    } else {
+                        // Track failed attempt
+                        console.log(`[${new Date().toISOString()}] Failed student auto-registration attempt for rollNo: ${username}`);
+                        return res.status(401).json({
+                            error: 'Invalid credentials',
+                            code: 'INVALID_CREDENTIALS'
+                        });
                     }
                 }
             } else {
@@ -96,52 +115,111 @@ router.post('/login', [
                             user = await User.findByPk(user.id, {
                                 include: [{ model: Faculty, as: 'facultyProfile' }]
                             });
+                        } else {
+                            console.log(`[${new Date().toISOString()}] Failed faculty auto-registration attempt for email: ${username}`);
+                            return res.status(401).json({
+                                error: 'Invalid credentials',
+                                code: 'INVALID_CREDENTIALS'
+                            });
                         }
                     }
                 }
             }
         }
 
-        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-        if (!user.isActive) return res.status(403).json({ error: 'Account is disabled' });
-        if (!user.isApproved) return res.status(403).json({ error: 'Account pending admin approval' });
+        if (!user) {
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                code: 'INVALID_CREDENTIALS'
+            });
+        }
+        if (!user.isActive) {
+            return res.status(403).json({
+                error: 'Account is disabled',
+                code: 'ACCOUNT_DISABLED'
+            });
+        }
+        if (!user.isApproved) {
+            return res.status(403).json({
+                error: 'Account pending admin approval',
+                code: 'ACCOUNT_PENDING_APPROVAL'
+            });
+        }
 
         const isValid = await user.validatePassword(password);
-        if (!isValid) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!isValid) {
+            console.log(`[${new Date().toISOString()}] Failed login attempt for user: ${username}`);
+            return res.status(401).json({
+                error: 'Invalid credentials',
+                code: 'INVALID_CREDENTIALS'
+            });
+        }
 
         const tokens = generateTokens(user);
         res.json({ user: user.toJSON(), ...tokens });
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        // Let global error handler deal with it, or:
+        const status = err.status || 500;
+        res.status(status).json({
+            error: err.message || 'Internal server error',
+            code: err.code || 'LOGIN_FAILED',
+            ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        });
     }
 });
 
 // POST /api/auth/register
 router.post('/register', [
-    body('username').isLength({ min: 3 }),
-    body('email').isEmail(),
-    body('password').isLength({ min: 6 }),
-    body('firstName').notEmpty(),
+    body('username').isLength({ min: 3, max: 30 }).trim().escape(),
+    body('email').isEmail().normalizeEmail(),
+    body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    body('firstName').notEmpty().trim().escape(),
+    body('lastName').optional({ nullable: true }).trim().escape(),
     body('role').isIn(['admin', 'faculty', 'student', 'librarian', 'staff']),
-], async (req, res) => {
+], async (req, res, next) => {
     try {
         const errors = validationResult(req);
-        if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
 
-        const { username, email, password, firstName, lastName, role } = req.body;
-        const existing = await User.findOne({ where: { username } });
-        if (existing) return res.status(409).json({ error: 'Username already exists' });
+        const data = matchedData(req);
+
+        const existing = await User.findOne({
+            where: {
+                [Op.or]: [
+                    { username: data.username },
+                    { email: data.email }
+                ]
+            }
+        });
+        if (existing) {
+            return res.status(409).json({
+                error: 'Username or email already exists',
+                code: 'USER_EXISTS'
+            });
+        }
 
         const user = await User.create({
-            username, email, passwordHash: password, firstName, lastName, role,
+            username: data.username,
+            email: data.email,
+            passwordHash: data.password,
+            firstName: data.firstName,
+            lastName: data.lastName || null,
+            role: data.role,
             isApproved: false, // Self-registration must be approved
         });
+
         const tokens = generateTokens(user);
         res.status(201).json({ user: user.toJSON(), ...tokens });
     } catch (err) {
         console.error('Registration error:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        next(err); // Pass to global error handler
     }
 });
 

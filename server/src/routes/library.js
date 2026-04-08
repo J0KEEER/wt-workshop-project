@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import {  Book, BookLoan, User, BookReservation  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
@@ -7,27 +8,59 @@ const router = express.Router();
 
 // ... (existing search and management routes up to line 80)
 
+// Validation for reserve
+const validateReserve = [
+    body('bookId').isInt().withMessage('Book ID must be an integer')
+];
+
 // POST /api/library/reserve — Reserve a book
-router.post('/reserve', authenticate, async (req, res) => {
+router.post('/reserve', authenticate, validateReserve, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { bookId } = req.body;
         const userId = req.user.id;
 
         const book = await Book.findByPk(bookId);
-        if (!book) return res.status(404).json({ error: 'Book not found' });
+        if (!book) {
+            return res.status(404).json({
+                error: 'Book not found',
+                code: 'BOOK_NOT_FOUND'
+            });
+        }
         if (book.availableCopies > 0) {
-            return res.status(400).json({ error: 'Book is currently available for borrowing' });
+            return res.status(400).json({
+                error: 'Book is currently available for borrowing',
+                code: 'BOOK_AVAILABLE'
+            });
         }
 
         // Check if user already has an active loan for this book
         const activeLoan = await BookLoan.findOne({ where: { bookId, userId, status: 'active' } });
-        if (activeLoan) return res.status(400).json({ error: 'You already have this book borrowed' });
+        if (activeLoan) {
+            return res.status(400).json({
+                error: 'You already have this book borrowed',
+                code: 'LOAN_ACTIVE'
+            });
+        }
 
         // Check if user already has a pending reservation
-        const existingReservation = await BookReservation.findOne({ 
-            where: { bookId, userId, status: { [Op.in]: ['pending', 'notified'] } } 
+        const existingReservation = await BookReservation.findOne({
+            where: { bookId, userId, status: { [Op.in]: ['pending', 'notified'] } }
         });
-        if (existingReservation) return res.status(400).json({ error: 'You already have an active reservation for this book' });
+        if (existingReservation) {
+            return res.status(400).json({
+                error: 'You already have an active reservation for this book',
+                code: 'RESERVATION_EXISTS'
+            });
+        }
 
         const reservation = await BookReservation.create({
             bookId,
@@ -38,7 +71,7 @@ router.post('/reserve', authenticate, async (req, res) => {
 
         res.status(201).json(reservation);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
@@ -56,13 +89,37 @@ router.get('/my-reservations', authenticate, async (req, res) => {
     }
 });
 
+// Validation for return
+const validateReturn = [
+    body('loanId').isInt().withMessage('Loan ID must be an integer')
+];
+
 // POST /api/library/return — Return a book
-router.post('/return', authenticate, async (req, res) => {
+router.post('/return', authenticate, validateReturn, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { loanId } = req.body;
         const loan = await BookLoan.findByPk(loanId, { include: [{ model: Book, as: 'book' }] });
-        if (!loan) return res.status(404).json({ error: 'Loan not found' });
-        if (loan.status === 'returned') return res.status(400).json({ error: 'Book already returned' });
+        if (!loan) {
+            return res.status(404).json({
+                error: 'Loan not found',
+                code: 'LOAN_NOT_FOUND'
+            });
+        }
+        if (loan.status === 'returned') {
+            return res.status(400).json({
+                error: 'Book already returned',
+                code: 'BOOK_ALREADY_RETURNED'
+            });
+        }
 
         const today = new Date();
         const dueDate = new Date(loan.dueDate);
@@ -79,7 +136,7 @@ router.post('/return', authenticate, async (req, res) => {
         });
 
         const book = loan.book;
-        
+
         // Find next person in reservation queue
         const nextReservation = await BookReservation.findOne({
             where: { bookId: book.id, status: 'pending' },
@@ -96,7 +153,7 @@ router.post('/return', authenticate, async (req, res) => {
 
         res.json({ loan, fine, notified: !!nextReservation });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
@@ -122,14 +179,42 @@ router.get('/loans', authenticate, async (req, res) => {
     }
 });
 
+// Validation for borrow
+const validateBorrow = [
+    body('bookId').isInt().withMessage('Book ID must be an integer'),
+    body('userId').optional().isInt().withMessage('User ID must be an integer')
+];
+
 // POST /api/library/borrow — Borrow a book
-router.post('/borrow', authenticate, async (req, res) => {
+router.post('/borrow', authenticate, validateBorrow, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { bookId, userId } = req.body;
         const borrowerId = userId || req.user.id;
 
+        // Only admins/staff can specify userId
+        if (userId && !['admin', 'staff', 'librarian'].includes(req.user.role)) {
+            return res.status(403).json({
+                error: 'Insufficient permissions to specify User ID',
+                code: 'INSUFFICIENT_PERMISSIONS'
+            });
+        }
+
         const book = await Book.findByPk(bookId);
-        if (!book) return res.status(404).json({ error: 'Book not found' });
+        if (!book) {
+            return res.status(404).json({
+                error: 'Book not found',
+                code: 'BOOK_NOT_FOUND'
+            });
+        }
 
         // Check if user has an active 'notified' reservation (they have priority)
         const priorityReservation = await BookReservation.findOne({
@@ -137,7 +222,10 @@ router.post('/borrow', authenticate, async (req, res) => {
         });
 
         if (!priorityReservation && book.availableCopies <= 0) {
-            return res.status(400).json({ error: 'No copies available. Please reserve this book.' });
+            return res.status(400).json({
+                error: 'No copies available. Please reserve this book.',
+                code: 'NO_COPIES_AVAILABLE'
+            });
         }
 
         const today = new Date();
@@ -159,7 +247,7 @@ router.post('/borrow', authenticate, async (req, res) => {
 
         res.status(201).json(loan);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

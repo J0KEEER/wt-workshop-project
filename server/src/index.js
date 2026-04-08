@@ -1,6 +1,8 @@
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -62,6 +64,42 @@ app.use(cors({
     },
     credentials: true,
 }));
+
+// Security Headers with Helmet
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            scriptSrc: ["'self'"],
+            imgSrc: ["'self'", "data:", "https:"],
+        },
+    },
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
+
+// Rate limiting - stricter for auth endpoints
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per window
+    message: { error: 'Too many login attempts. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // 100 requests per window per IP
+    message: { error: 'Too many requests. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -97,9 +135,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/students', studentRoutes);
+// API Routes - Apply rate limiting to auth endpoints
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/students', generalLimiter, studentRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/exams', examRoutes);
@@ -140,10 +178,38 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-// Error handler
+// Global Error Handler with structured error codes
 app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    const timestamp = new Date().toISOString();
+    const requestId = req.headers['x-request-id'] || 'N/A';
+
+    // Log full error for debugging
+    console.error(`[${timestamp}] [RequestID: ${requestId}]`, {
+        method: req.method,
+        url: req.originalUrl,
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        error: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    });
+
+    // Determine status code and safe error message
+    const statusCode = err.status || err.statusCode || 500;
+    const errorCode = err.code || 'INTERNAL_ERROR';
+
+    // Don't expose internal errors in production
+    const message = statusCode === 500
+        ? 'An unexpected error occurred. Our team has been notified.'
+        : err.message;
+
+    res.status(statusCode).json({
+        error: true,
+        code: errorCode,
+        message,
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+        timestamp,
+        requestId,
+    });
 });
 
 // Get local network IP

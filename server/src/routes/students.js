@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import {  Student, Course, Enrollment, User, Department  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
@@ -52,33 +53,65 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 });
 
+// Validation for student creation/update
+const validateStudent = [
+    body('name').notEmpty().trim().escape(),
+    body('rollNo').notEmpty().trim().escape(),
+    body('email').isEmail().normalizeEmail(),
+    body('phone').optional().isMobilePhone('any').withMessage('Invalid phone number'),
+    body('department').optional().isString(),
+    body('semester').optional().isInt({ min: 1, max: 10 }),
+    body('status').optional().isIn(['active', 'inactive', 'graduated']),
+];
+
 // POST /api/students — Create student
-router.post('/', authenticate, authorize('admin', 'staff'), async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'staff'), validateStudent, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const student = await Student.create(req.body);
         console.log(`[${new Date().toISOString()}] Student Created: ${student.name} (Roll: ${student.rollNo})`);
         res.status(201).json(student);
     } catch (err) {
         console.error(`[${new Date().toISOString()}] Student Creation Failed:`, err.message);
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
 // PUT /api/students/:id — Update student
-router.put('/:id', authenticate, authorize('admin', 'staff'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin', 'staff'), validateStudent, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const student = await Student.findByPk(req.params.id);
-        if (!student) return res.status(404).json({ error: 'Student not found' });
-        
-        const oldData = { ...student.toJSON() };
+        if (!student) {
+            return res.status(404).json({
+                error: 'Student not found',
+                code: 'STUDENT_NOT_FOUND'
+            });
+        }
+
         await student.update(req.body);
-        
         console.log(`[${new Date().toISOString()}] Student Updated: ${student.name} (ID: ${student.id})`);
 
         res.json(student);
     } catch (err) {
         console.error(`[${new Date().toISOString()}] Student Update Failed (ID: ${req.params.id}):`, err.message);
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

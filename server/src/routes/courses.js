@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import { Course, Faculty, Student, Enrollment, Department, Timetable } from '../models/index.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 
@@ -76,9 +77,30 @@ router.get('/:id/roster', authenticate, authorize('admin', 'faculty', 'staff'), 
     }
 });
 
+// Validation for course creation/update
+const validateCourse = [
+    body('title').notEmpty().trim().escape(),
+    body('code').notEmpty().trim().escape(),
+    body('credits').optional().isInt({ min: 1, max: 10 }),
+    body('department').optional().isString(),
+    body('semester').optional().isInt({ min: 1, max: 10 }),
+    body('capacity').optional().isInt({ min: 1 }),
+    body('status').optional().isIn(['active', 'inactive', 'archived']),
+    body('facultyIds').optional().isArray().withMessage('facultyIds must be an array')
+];
+
 // POST /api/courses
-router.post('/', authenticate, authorize('admin'), async (req, res) => {
+router.post('/', authenticate, authorize('admin'), validateCourse, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { facultyIds, ...courseData } = req.body;
         const course = await Course.create(courseData);
         if (facultyIds && Array.isArray(facultyIds)) {
@@ -86,23 +108,37 @@ router.post('/', authenticate, authorize('admin'), async (req, res) => {
         }
         res.status(201).json(course);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
 // PUT /api/courses/:id
-router.put('/:id', authenticate, authorize('admin'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin'), validateCourse, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { facultyIds, ...courseData } = req.body;
         const course = await Course.findByPk(req.params.id);
-        if (!course) return res.status(404).json({ error: 'Course not found' });
+        if (!course) {
+            return res.status(404).json({
+                error: 'Course not found',
+                code: 'COURSE_NOT_FOUND'
+            });
+        }
         await course.update(courseData);
         if (facultyIds && Array.isArray(facultyIds)) {
             await course.setFaculties(facultyIds);
         }
         res.json(course);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import {  Fee, Payment, Student  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
@@ -70,46 +71,107 @@ router.get('/:studentId/summary', authenticate, async (req, res) => {
     }
 });
 
+// Validation for fee creation
+const validateFee = [
+    body('studentId').isInt().withMessage('Student ID must be an integer'),
+    body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+    body('dueDate').isISO8601().withMessage('Valid dueDate is required'),
+    body('type').optional().isString(),
+    body('status').optional().isIn(['pending', 'partial', 'paid', 'overdue']),
+];
+
 // POST /api/fees — Create a fee
-router.post('/', authenticate, authorize('admin', 'staff'), async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'staff'), validateFee, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const fee = await Fee.create(req.body);
         res.status(201).json(fee);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
 // PUT /api/fees/:id
-router.put('/:id', authenticate, authorize('admin', 'staff'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin', 'staff'), validateFee, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const fee = await Fee.findByPk(req.params.id);
-        if (!fee) return res.status(404).json({ error: 'Fee not found' });
+        if (!fee) {
+            return res.status(404).json({
+                error: 'Fee not found',
+                code: 'FEE_NOT_FOUND'
+            });
+        }
         await fee.update(req.body);
         res.json(fee);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
+// Validation for payment
+const validatePayment = [
+    body('feeId').isInt().withMessage('Fee ID must be an integer'),
+    body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be a positive number'),
+    body('method').optional().isString(),
+    body('transactionId').optional().trim().escape(),
+    body('remarks').optional().trim().escape(),
+];
+
 // POST /api/fees/payment — Record a payment
-router.post('/payment', authenticate, async (req, res) => {
+router.post('/payment', authenticate, validatePayment, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const { feeId, amount, method, transactionId, remarks } = req.body;
-        if (!feeId || !amount) return res.status(400).json({ error: 'feeId and amount are required' });
 
         const fee = await Fee.findByPk(feeId);
-        if (!fee) return res.status(404).json({ error: 'Fee not found' });
+        if (!fee) {
+            return res.status(404).json({
+                error: 'Fee not found',
+                code: 'FEE_NOT_FOUND'
+            });
+        }
 
         const remaining = fee.amount - fee.paidAmount;
         if (amount > remaining) {
-            return res.status(400).json({ error: `Payment exceeds remaining balance of ${remaining}` });
+            return res.status(400).json({
+                error: `Payment exceeds remaining balance of ${remaining}`,
+                code: 'PAYMENT_EXCEEDS_REMAINING'
+            });
         }
 
         const payment = await Payment.create({
-            feeId, studentId: fee.studentId, amount,
+            feeId,
+            studentId: fee.studentId,
+            amount,
             paymentDate: new Date().toISOString().split('T')[0],
-            method: method || 'online', transactionId, remarks,
+            method: method || 'online',
+            transactionId,
+            remarks,
         });
 
         // Update fee record
@@ -119,7 +181,7 @@ router.post('/payment', authenticate, async (req, res) => {
 
         res.status(201).json({ payment, fee: await Fee.findByPk(feeId) });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

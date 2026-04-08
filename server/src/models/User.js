@@ -26,7 +26,7 @@ const User = sequelize.define('User', {
     hooks: {
         beforeCreate: async (user) => {
             if (user.passwordHash) {
-                user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
+                user.passwordHash = await bcrypt.hash(user.passwordHash, 12);
             }
             // REQ-02: Set 7-day default expiry for students
             if (user.role === 'student' && !user.batchExpiresAt) {
@@ -35,7 +35,7 @@ const User = sequelize.define('User', {
         },
         beforeUpdate: async (user) => {
             if (user.changed('passwordHash')) {
-                user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
+                user.passwordHash = await bcrypt.hash(user.passwordHash, 12);
             }
         },
     },

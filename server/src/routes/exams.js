@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import express from 'express';
+import { body, validationResult } from 'express-validator';
 import {  Exam, ExamResult, Course, Student  } from '../models/index.js';
 import {  authenticate, authorize  } from '../middleware/auth.js';
 
@@ -40,32 +41,72 @@ router.get('/:id', authenticate, async (req, res) => {
     }
 });
 
+// Validation for exam creation/update
+const validateExam = [
+    body('courseId').isInt().withMessage('Course ID must be an integer'),
+    body('title').notEmpty().trim().escape(),
+    body('date').isISO8601().withMessage('Valid date is required'),
+    body('type').optional().isString(),
+    body('maxMarks').optional().isFloat({ min: 0 }).withMessage('Max marks must be positive'),
+    body('duration').optional().isInt({ min: 1 }).withMessage('Duration must be positive integer'),
+];
+
+// Helper to check past date
+const validateNotPastDate = (req, res, next) => {
+    const examDate = new Date(req.body.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (isNaN(examDate.getTime())) {
+        return res.status(400).json({ error: 'Invalid date format', code: 'INVALID_DATE' });
+    }
+    if (examDate < today) {
+        return res.status(400).json({ error: 'Cannot schedule exam in the past', code: 'DATE_IN_PAST' });
+    }
+    next();
+};
+
 // POST /api/exams
-router.post('/', authenticate, authorize('admin', 'faculty'), async (req, res) => {
+router.post('/', authenticate, authorize('admin', 'faculty'), validateExam, validateNotPastDate, async (req, res, next) => {
     try {
-        // Validate date is not in the past
-        const examDate = new Date(req.body.date);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (examDate < today) {
-            return res.status(400).json({ error: 'Cannot schedule exam in the past' });
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
         }
+
         const exam = await Exam.create(req.body);
         res.status(201).json(exam);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 
 // PUT /api/exams/:id
-router.put('/:id', authenticate, authorize('admin', 'faculty'), async (req, res) => {
+router.put('/:id', authenticate, authorize('admin', 'faculty'), validateExam, async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                code: 'VALIDATION_ERROR',
+                details: errors.array()
+            });
+        }
+
         const exam = await Exam.findByPk(req.params.id);
-        if (!exam) return res.status(404).json({ error: 'Exam not found' });
+        if (!exam) {
+            return res.status(404).json({
+                error: 'Exam not found',
+                code: 'EXAM_NOT_FOUND'
+            });
+        }
         await exam.update(req.body);
         res.json(exam);
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        next(err);
     }
 });
 

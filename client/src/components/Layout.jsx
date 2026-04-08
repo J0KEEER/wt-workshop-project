@@ -55,6 +55,7 @@ export default function Layout() {
     const [notifications, setNotifications] = useState([]);
     const [showNotifications, setShowNotifications] = useState(false);
     const socketRef = useRef(null);
+    const notificationRef = useRef(null);
 
     useEffect(() => {
         document.documentElement.setAttribute('data-theme', theme);
@@ -62,10 +63,12 @@ export default function Layout() {
     }, [theme]);
 
     useEffect(() => {
+        const token = localStorage.getItem('erp_token');
         const socket = io(import.meta.env.VITE_API_URL || window.location.origin, {
             transports: ['websocket'],
             reconnectionAttempts: 5,
             timeout: 3000,
+            auth: { token },
         });
         socketRef.current = socket;
 
@@ -77,11 +80,26 @@ export default function Layout() {
         return () => socket.disconnect();
     }, []);
 
+    // BUG-03: Close notification dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+                setShowNotifications(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
 
+    // BUG-04: Match nested paths like /faculty/schedule
     const getPageTitle = () => {
         const flat = allNavItems.flatMap(s => s.items);
-        const current = flat.find(i => i.path === location.pathname);
+        const current = flat.find(i =>
+            i.path === location.pathname ||
+            (i.path !== '/' && location.pathname.startsWith(i.path))
+        );
         return current?.label || 'Dashboard';
     };
 
@@ -166,7 +184,7 @@ export default function Layout() {
                             <p>Welcome back, {user?.firstName}!</p>
                         </div>
                         <div className="header-actions" style={{ marginLeft: 'auto', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                            <div style={{ position: 'relative' }}>
+                            <div style={{ position: 'relative' }} ref={notificationRef}>
                                 <button 
                                     className="btn btn-secondary btn-icon" 
                                     onClick={() => setShowNotifications(!showNotifications)}

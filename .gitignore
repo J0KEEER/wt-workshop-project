@@ -1,5 +1,32 @@
+# Dependencies
 node_modules/
+
+# Environment (CRITICAL — never commit secrets)
 .env
+.env.local
+.env.production
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+database.sqlite
+server/database.sqlite
+server/college.db
+
+# Build artifacts
+client/dist/
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE / Tool configs
+.agents/
 mcp.json
 mcp_config.json
-.agents/
+.code-review-graph/
+.planning/
+G0DM0D3/

@@ -47,7 +47,55 @@ router.get('/', authenticate, authorize('admin', 'staff'), async (req, res) => {
     }
 });
 
-// GET /api/fees/:studentId/summary
+// GET /api/fees/defaulters — Admin portal: List overdue fees
+// NOTE: Named routes MUST be registered before parameterized routes
+router.get('/defaulters', authenticate, authorize('admin', 'staff'), async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const overdue = await Fee.findAll({
+            where: {
+                [Op.or]: [
+                    { status: 'overdue' },
+                    { 
+                        status: { [Op.ne]: 'paid' },
+                        dueDate: { [Op.lt]: today }
+                    }
+                ]
+            },
+            include: [{ model: Student, as: 'student', attributes: ['id', 'name', 'rollNo'] }]
+        });
+        res.json(overdue);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/fees/stats — General financial dashboard data
+router.get('/stats', authenticate, authorize('admin', 'staff'), async (req, res) => {
+    try {
+        const totalFees = await Fee.sum('amount') || 0;
+        const totalCollected = await Fee.sum('paidAmount') || 0;
+        const overdueCount = await Fee.count({ 
+            where: { 
+                [Op.or]: [
+                    { status: 'overdue' },
+                    { status: { [Op.ne]: 'paid' }, dueDate: { [Op.lt]: new Date().toISOString().split('T')[0] } }
+                ]
+            } 
+        });
+        
+        res.json({
+            totalFees,
+            totalCollected,
+            pendingAmount: totalFees - totalCollected,
+            overdueCount
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/fees/:studentId/summary — PARAM ROUTES AFTER NAMED ROUTES
 router.get('/:studentId/summary', authenticate, async (req, res) => {
     try {
         const fees = await Fee.findAll({
@@ -92,7 +140,8 @@ router.post('/', authenticate, authorize('admin', 'staff'), validateFee, async (
             });
         }
 
-        const fee = await Fee.create(req.body);
+        const { studentId, amount, dueDate, type, status, description } = req.body;
+        const fee = await Fee.create({ studentId, amount, dueDate, type, status, description });
         res.status(201).json(fee);
     } catch (err) {
         next(err);
@@ -118,7 +167,11 @@ router.put('/:id', authenticate, authorize('admin', 'staff'), validateFee, async
                 code: 'FEE_NOT_FOUND'
             });
         }
-        await fee.update(req.body);
+        const allowedFields = ['amount', 'dueDate', 'type', 'status', 'description'];
+        const updates = Object.fromEntries(
+            Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
+        );
+        await fee.update(updates);
         res.json(fee);
     } catch (err) {
         next(err);
@@ -185,51 +238,6 @@ router.post('/payment', authenticate, validatePayment, async (req, res, next) =>
     }
 });
 
-// GET /api/fees/defaulters — Admin portal: List overdue fees
-router.get('/defaulters', authenticate, authorize('admin', 'staff'), async (req, res) => {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const overdue = await Fee.findAll({
-            where: {
-                [Op.or]: [
-                    { status: 'overdue' },
-                    { 
-                        status: { [Op.ne]: 'paid' },
-                        dueDate: { [Op.lt]: today }
-                    }
-                ]
-            },
-            include: [{ model: Student, as: 'student', attributes: ['id', 'name', 'rollNo'] }]
-        });
-        res.json(overdue);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// GET /api/fees/stats — General financial dashboard data
-router.get('/stats', authenticate, authorize('admin', 'staff'), async (req, res) => {
-    try {
-        const totalFees = await Fee.sum('amount') || 0;
-        const totalCollected = await Fee.sum('paidAmount') || 0;
-        const overdueCount = await Fee.count({ 
-            where: { 
-                [Op.or]: [
-                    { status: 'overdue' },
-                    { status: { [Op.ne]: 'paid' }, dueDate: { [Op.lt]: new Date().toISOString().split('T')[0] } }
-                ]
-            } 
-        });
-        
-        res.json({
-            totalFees,
-            totalCollected,
-            pendingAmount: totalFees - totalCollected,
-            overdueCount
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
+// /defaulters and /stats moved above /:studentId/summary (BUG-01 fix)
 
 export default router;

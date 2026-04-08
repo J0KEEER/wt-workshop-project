@@ -215,8 +215,11 @@ router.post('/register', [
             isApproved: false, // Self-registration must be approved
         });
 
-        const tokens = generateTokens(user);
-        res.status(201).json({ user: user.toJSON(), ...tokens });
+        // Do NOT issue tokens — user must wait for admin approval
+        res.status(201).json({
+            message: 'Registration successful. Your account is pending admin approval.',
+            user: user.toJSON(),
+        });
     } catch (err) {
         console.error('Registration error:', err);
         next(err); // Pass to global error handler

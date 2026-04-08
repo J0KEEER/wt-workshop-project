@@ -11,9 +11,18 @@ export function AuthProvider({ children }) {
         const token = localStorage.getItem('erp_token');
         const savedUser = localStorage.getItem('erp_user');
         if (token && savedUser) {
-            try {
-                setUser(JSON.parse(savedUser));
-            } catch { /* ignore */ }
+            // Validate token is not expired by calling /auth/me
+            api.get('/auth/me')
+                .then(res => setUser(res.data))
+                .catch(() => {
+                    // Token invalid/expired — clear everything
+                    localStorage.removeItem('erp_token');
+                    localStorage.removeItem('erp_refresh_token');
+                    localStorage.removeItem('erp_user');
+                    setUser(null);
+                })
+                .finally(() => setLoading(false));
+            return; // Don't call setLoading(false) below
         }
         setLoading(false);
     }, []);

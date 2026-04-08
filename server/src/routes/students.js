@@ -76,7 +76,8 @@ router.post('/', authenticate, authorize('admin', 'staff'), validateStudent, asy
             });
         }
 
-        const student = await Student.create(req.body);
+        const { name, rollNo, email, phone, department, semester, status, departmentId } = req.body;
+        const student = await Student.create({ name, rollNo, email, phone, department, semester, status, departmentId });
         console.log(`[${new Date().toISOString()}] Student Created: ${student.name} (Roll: ${student.rollNo})`);
         res.status(201).json(student);
     } catch (err) {
@@ -105,7 +106,11 @@ router.put('/:id', authenticate, authorize('admin', 'staff'), validateStudent, a
             });
         }
 
-        await student.update(req.body);
+        const allowedFields = ['name', 'email', 'phone', 'department', 'semester', 'status', 'departmentId'];
+        const updates = Object.fromEntries(
+            Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
+        );
+        await student.update(updates);
         console.log(`[${new Date().toISOString()}] Student Updated: ${student.name} (ID: ${student.id})`);
 
         res.json(student);

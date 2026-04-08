@@ -100,8 +100,8 @@ const generalLimiter = rateLimit({
     legacyHeaders: false,
 });
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Request logging
 app.use((req, res, next) => {
@@ -135,27 +135,27 @@ app.use((req, res, next) => {
     next();
 });
 
-// API Routes - Apply rate limiting to auth endpoints
+// API Routes — rate limiting on ALL route groups
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/students', generalLimiter, studentRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/exams', examRoutes);
-app.use('/api/fees', feeRoutes);
-app.use('/api/library', libraryRoutes);
-app.use('/api/faculty', facultyRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/holidays', holidayRoutes);
-app.use('/api/feedback', feedbackRoutes);
-app.use('/api/admin/approvals', approvalRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/personnel', personnelRoutes);
-app.use('/api/performance', performanceRoutes);
-app.use('/api/hostels', hostelRoutes);
-app.use('/api/transport', transportRoutes);
-app.use('/api/inventory', inventoryRoutes);
+app.use('/api/courses', generalLimiter, courseRoutes);
+app.use('/api/attendance', generalLimiter, attendanceRoutes);
+app.use('/api/exams', generalLimiter, examRoutes);
+app.use('/api/fees', generalLimiter, feeRoutes);
+app.use('/api/library', generalLimiter, libraryRoutes);
+app.use('/api/faculty', generalLimiter, facultyRoutes);
+app.use('/api/dashboard', generalLimiter, dashboardRoutes);
+app.use('/api/users', generalLimiter, userRoutes);
+app.use('/api/departments', generalLimiter, departmentRoutes);
+app.use('/api/holidays', generalLimiter, holidayRoutes);
+app.use('/api/feedback', generalLimiter, feedbackRoutes);
+app.use('/api/admin/approvals', generalLimiter, approvalRoutes);
+app.use('/api/events', generalLimiter, eventRoutes);
+app.use('/api/personnel', generalLimiter, personnelRoutes);
+app.use('/api/performance', generalLimiter, performanceRoutes);
+app.use('/api/hostels', generalLimiter, hostelRoutes);
+app.use('/api/transport', generalLimiter, transportRoutes);
+app.use('/api/inventory', generalLimiter, inventoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -236,4 +236,30 @@ async function start() {
     });
 }
 
+// === Environment Validation ===
+function validateEnv() {
+    const required = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
+    const missing = required.filter(key => !process.env[key]);
+
+    if (missing.length > 0) {
+        console.error(`❌ Missing required environment variables: ${missing.join(', ')}`);
+        console.error('   Create a .env file in /server with these values.');
+        process.exit(1);
+    }
+
+    if (process.env.JWT_SECRET.length < 32) {
+        console.error('❌ JWT_SECRET must be at least 32 characters');
+        process.exit(1);
+    }
+
+    if (process.env.JWT_SECRET === 'your_jwt_secret_here_change_this') {
+        console.error('❌ JWT_SECRET is still the default placeholder. Generate a real secret:');
+        console.error('   node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+        process.exit(1);
+    }
+
+    console.log('✅ Environment validation passed');
+}
+
+validateEnv();
 start();

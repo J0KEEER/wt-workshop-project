@@ -68,12 +68,7 @@ export default function Login() {
                     Don't have an account? <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>Create Request</Link>
                 </div>
 
-                <div className="login-hint">
-                    <strong>Demo Credentials:</strong><br />
-                    Admin: admin / admin123<br />
-                    Faculty: shivangi / fac123<br />
-                    Student: alice / stu123
-                </div>
+                {/* Demo credentials documented in .env.example only */}
             </div>
         </div>
     );

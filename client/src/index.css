@@ -1704,3 +1704,21 @@ textarea.form-control {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* ============= SKELETON LOADING ============= */
+.skeleton-bar {
+  background: linear-gradient(90deg, var(--bg-card, #1a1a2e) 25%, rgba(255,255,255,0.08) 50%, var(--bg-card, #1a1a2e) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite;
+  border-radius: var(--radius-md, 8px);
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.page-skeleton {
+  animation: fadeIn 0.3s ease;
+}
+

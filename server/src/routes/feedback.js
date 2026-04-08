@@ -1,6 +1,5 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { sanitize } from 'express-validator/filter'; // Note: using trim/escape via check
 import Sentiment from 'sentiment';
 import { Feedback, Enrollment, Student, Course } from '../models/index.js';
 import { authenticate } from '../middleware/auth.js';

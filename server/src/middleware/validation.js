@@ -26,7 +26,7 @@ export const sanitizeBody = (req, res, next) => {
 export const rules = {
     email: body('email').isEmail().normalizeEmail().withMessage('Valid email required'),
     password: body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
-    name: body('name').notEmpty().trim().escape().withMessage('Name is required'),
+    name: body('name').trim().notEmpty().escape().withMessage('Name is required'),
     id: body('id').optional().isInt({ min: 1 }).withMessage('ID must be a positive integer'),
 };
 

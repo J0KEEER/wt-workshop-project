@@ -238,6 +238,8 @@ async function start() {
 
 // === Environment Validation ===
 function validateEnv() {
+    const isProduction = process.env.NODE_ENV === 'production';
+
     const required = ['JWT_SECRET', 'JWT_REFRESH_SECRET'];
     const missing = required.filter(key => !process.env[key]);
 
@@ -247,14 +249,31 @@ function validateEnv() {
         process.exit(1);
     }
 
-    if (process.env.JWT_SECRET.length < 32) {
-        console.error('❌ JWT_SECRET must be at least 32 characters');
+    // Stronger requirements for production
+    const minSecretLength = isProduction ? 64 : 32;
+
+    if (process.env.JWT_SECRET.length < minSecretLength) {
+        console.error(`❌ JWT_SECRET must be at least ${minSecretLength} characters (${isProduction ? 'production' : 'development'} mode)`);
         process.exit(1);
     }
 
-    if (process.env.JWT_SECRET === 'your_jwt_secret_here_change_this') {
-        console.error('❌ JWT_SECRET is still the default placeholder. Generate a real secret:');
-        console.error('   node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    if (process.env.JWT_REFRESH_SECRET.length < minSecretLength) {
+        console.error(`❌ JWT_REFRESH_SECRET must be at least ${minSecretLength} characters (${isProduction ? 'production' : 'development'} mode)`);
+        process.exit(1);
+    }
+
+    // Check for placeholder values
+    const placeholderPatterns = ['your_jwt_secret', 'CHANGE_ME', 'placeholder', 'EXAMPLE'];
+    const secretLower = (process.env.JWT_SECRET || '').toLowerCase();
+    const refreshLower = (process.env.JWT_REFRESH_SECRET || '').toLowerCase();
+
+    const hasPlaceholder = placeholderPatterns.some(pattern =>
+        secretLower.includes(pattern) || refreshLower.includes(pattern)
+    );
+
+    if (hasPlaceholder) {
+        console.error('❌ JWT_SECRET or JWT_REFRESH_SECRET contains placeholder values');
+        console.error('   Generate real secrets using: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
         process.exit(1);
     }
 

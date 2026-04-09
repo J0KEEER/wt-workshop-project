@@ -30,3 +30,54 @@ mcp_config.json
 .code-review-graph/
 .planning/
 G0DM0D3/
+
+# Security: Never commit environment files with secrets
+.env
+.env.*
+!.env.example
+.env.local
+.env.production
+.env.development
+
+# Database files (can contain sensitive data)
+*.sqlite
+*.sqlite3
+*.db
+server/*.db
+server/*.sqlite
+database.sqlite
+
+# Build artifacts
+client/node_modules/
+server/node_modules/
+client/dist/
+server/dist/
+dist/
+*.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+*.orig
+*.pdb
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs and temp files
+logs/
+*.log
+tmp/
+temp/
+*.tmp
+
+# Coverage and testing
+coverage/
+.nyc_output/
+```
